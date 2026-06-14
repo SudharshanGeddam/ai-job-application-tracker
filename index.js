@@ -1,13 +1,12 @@
 // index.js
+const dotenv = require('dotenv');
+// Load environment variables from .env file
+dotenv.config();
 
 const express = require('express');
-const dotenv = require('dotenv');
 const cors = require('cors');
 const logger = require('./src/middlewares/logger');
 const applicationRoutes = require("./src/routes/applicationRoutes");
-
-// Load environment variables from .env file
-dotenv.config();
 
 // Create an Express application
 const app = express();
