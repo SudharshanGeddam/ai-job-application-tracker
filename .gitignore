@@ -5,3 +5,4 @@ node_modules/
 
 # Ignore .env files
 .env
+/src/generated/prisma
