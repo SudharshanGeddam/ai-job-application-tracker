@@ -7,6 +7,7 @@ const express = require('express');
 const cors = require('cors');
 const logger = require('./src/middlewares/logger');
 const applicationRoutes = require("./src/routes/applicationRoutes");
+const authRoutes = require("./src/routes/authRoutes");
 
 // Create an Express application
 const app = express();
@@ -32,6 +33,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use("/api/applications", applicationRoutes);
+app.use("/api/auth", authRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 3000;
