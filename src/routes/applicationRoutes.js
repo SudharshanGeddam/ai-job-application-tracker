@@ -7,13 +7,15 @@ const {
     getApplicationById,
     createApplication,
     updateApplication,
-    deleteApplication
+    deleteApplication,
+    getApplicationStats
 } = require("../controllers/applicationController");
 
 // Apply the protect middleware to all routes in this router
 router.use(protect); 
 
 router.get("/", getAllApplications);
+router.get("/stats", getApplicationStats);
 router.get("/:id", getApplicationById);
 router.post("/", createApplication);
 router.put("/:id", updateApplication);

@@ -128,3 +128,29 @@ exports.deleteApplication = async (req, res) => {
         res.status(500).json({success: false, message: 'Server error while deleting application'});
     }
 }
+
+exports.getApplicationStats = async (req, res) => {
+    try {
+        const userId = req.user?.userId || TEMP_USER_ID; 
+
+        // Group applications by status and count them
+        const statusGroups = await prisma.application.groupBy({
+            by: ['status'],
+            where: { userId },
+            _count: { status: true },
+        });
+
+        const byStatus = {};
+        let totalApplications = 0;
+
+        for (const group of statusGroups) {
+            byStatus[group.status] = group._count.status;
+            totalApplications += group._count.status;
+        }
+
+        res.status(200).json({ success: true, data: {  totalApplications , byStatus} });
+    } catch (error) {
+        console.error('Error fetching application stats:', error);
+        res.status(500).json({ success: false, message: 'Server error while fetching application stats' });
+    }
+}
