@@ -71,10 +71,21 @@ exports.createApplication = async (req, res) => {
 
         const data = validationResult.data;
 
+        if (req.file) {
+            console.log('--- Multer parsed file ---');
+            console.log('Original name:', req.file.originalname);
+            console.log('MIME type:    ', req.file.mimetype);
+            console.log('Size (bytes): ', req.file.size);
+            console.log('Buffer exists:', !!req.file.buffer);
+        }
+
+        const resumeUrl = req.file ? 'PLACEHOLDER_FOR_S3_URL' : null; // Replace with actual S3 URL after upload
+
         const newApplication = await prisma.application.create({
             data: {
                 ...data,
-                userId: req.user.userId 
+                resumeUrl,
+                userId: req.user.userId,
             }
         });
 
@@ -90,6 +101,15 @@ exports.updateApplication = async (req, res) => {
     try {
         const { companyName, role, status, jobLink, notes, appliedDate } = req.body;
 
+        if (req.file) {
+            console.log('--- Multer parsed file ---');
+            console.log('Original name:', req.file.originalname);
+            console.log('MIME type:    ', req.file.mimetype);
+            console.log('Size (bytes): ', req.file.size);
+        }
+
+        const resumeUrl = req.file ? 'PLACEHOLDER_FOR_S3_URL' : undefined; // Replace with actual S3 URL after upload
+
         const application = await prisma.application.update({
             where: { id: req.params.id, userId: req.user.userId },
             data: {
@@ -98,7 +118,8 @@ exports.updateApplication = async (req, res) => {
                 status,
                 jobLink,
                 notes,
-                appliedDate
+                appliedDate,
+                ...(resumeUrl !== undefined && { resumeUrl }), // Only update resumeUrl if a new file is provided
             }
         });
         res.json({success: true, data: application});
@@ -131,8 +152,7 @@ exports.deleteApplication = async (req, res) => {
 
 exports.getApplicationStats = async (req, res) => {
     try {
-        const userId = req.user?.userId || TEMP_USER_ID; 
-
+        const userId = req.user.userId;
         // Group applications by status and count them
         const statusGroups = await prisma.application.groupBy({
             by: ['status'],

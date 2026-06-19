@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { protect } = require("../middlewares/authMiddleware");
+const upload = require("../config/multer");
 
 const {
     getAllApplications,
@@ -17,8 +18,8 @@ router.use(protect);
 router.get("/", getAllApplications);
 router.get("/stats", getApplicationStats);
 router.get("/:id", getApplicationById);
-router.post("/", createApplication);
-router.put("/:id", updateApplication);
+router.post("/", upload.single("resume"), createApplication);
+router.put("/:id", upload.single("resume"), updateApplication);
 router.delete("/:id", deleteApplication);
 
 module.exports = router;

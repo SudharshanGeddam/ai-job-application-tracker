@@ -27,6 +27,7 @@ model Application {
   status      Status   @default(APPLIED)
   jobLink     String?
   notes       String?
+  resumeUrl   String?
   appliedDate DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
