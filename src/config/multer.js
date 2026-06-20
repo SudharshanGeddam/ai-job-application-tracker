@@ -5,6 +5,7 @@ const storage = multer.memoryStorage(); // Store files in memory for processing
 
 // File filter to accept only specific file types (e.g., images)
 const fileFilter = (req, file, cb) => {
+    console.log('Received file:', file.mimetype);
     const allowedMimeTypes = [
         'application/pdf',
         'image/jpeg',

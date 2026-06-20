@@ -1,6 +1,22 @@
 const prisma = require('../config/prisma');
 const { createApplicationSchema } = require('../validators/applicationValidator');
 const { parsePaginationParams, buildPaginationMetadata } = require('../utils/pagination.utils');
+const cloudinary = require('../config/cloudinary.config');
+const streamifier = require('streamifier');
+
+// Helper: uploads a Buffer (from Multer memoryStorage) to Cloudinary via a stream
+const uploadBufferToCloudinary = (buffer) => {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: 'resumes', resource_type: 'auto' },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result);
+            }
+        );
+        streamifier.createReadStream(buffer).pipe(uploadStream);
+    });
+};
     
 // Get all applications
 exports.getAllApplications = async (req, res) => {
@@ -71,15 +87,12 @@ exports.createApplication = async (req, res) => {
 
         const data = validationResult.data;
 
+        // If a resume file was uploaded, send it to Cloudinary and get the real URL
+        let resumeUrl = null;
         if (req.file) {
-            console.log('--- Multer parsed file ---');
-            console.log('Original name:', req.file.originalname);
-            console.log('MIME type:    ', req.file.mimetype);
-            console.log('Size (bytes): ', req.file.size);
-            console.log('Buffer exists:', !!req.file.buffer);
+            const result = await uploadBufferToCloudinary(req.file.buffer);
+            resumeUrl = result.secure_url;
         }
-
-        const resumeUrl = req.file ? 'PLACEHOLDER_FOR_S3_URL' : null; // Replace with actual S3 URL after upload
 
         const newApplication = await prisma.application.create({
             data: {
@@ -99,19 +112,29 @@ exports.createApplication = async (req, res) => {
 // Update an application by ID
 exports.updateApplication = async (req, res) => {
     try {
+        const { id } = req.params;
+        const userId = req.user.userId;
         const { companyName, role, status, jobLink, notes, appliedDate } = req.body;
 
-        if (req.file) {
-            console.log('--- Multer parsed file ---');
-            console.log('Original name:', req.file.originalname);
-            console.log('MIME type:    ', req.file.mimetype);
-            console.log('Size (bytes): ', req.file.size);
+        // Step 1: confirm this application exists AND belongs to this user
+        const existing = await prisma.application.findFirst({
+            where: { id, userId },
+        });
+
+        if (!existing) {
+            return res.status(404).json({ success: false, message: 'Application not found' });
         }
 
-        const resumeUrl = req.file ? 'PLACEHOLDER_FOR_S3_URL' : undefined; // Replace with actual S3 URL after upload
+        // If a new resume file was uploaded, send it to Cloudinary and get the real URL
+        let resumeUrl = undefined; // undefined = "don't touch this field"
+        if (req.file) {
+            const result = await uploadBufferToCloudinary(req.file.buffer);
+            resumeUrl = result.secure_url;
+        }
 
+        // Step 2: ownership confirmed, safe to update by id alone
         const application = await prisma.application.update({
-            where: { id: req.params.id, userId: req.user.userId },
+            where: { id },
             data: {
                 companyName,
                 role,
@@ -124,9 +147,6 @@ exports.updateApplication = async (req, res) => {
         });
         res.json({success: true, data: application});
     } catch (error) {
-        if (error.code === 'P2025') {
-            return res.status(404).json({success: false, message: 'Application not found'});
-        }
         console.error(error);
         res.status(500).json({success: false, message: 'Server error while updating application'});
     }
@@ -135,16 +155,25 @@ exports.updateApplication = async (req, res) => {
 // Delete an application by ID
 exports.deleteApplication = async (req, res) => {
     try {
-        
+        const { id } = req.params;
+        const userId = req.user.userId;
+
+        // Step 1: confirm this application exists AND belongs to this user
+        const existing = await prisma.application.findFirst({
+            where: { id, userId },
+        });
+
+        if (!existing) {
+            return res.status(404).json({ success: false, message: 'Application not found' });
+        }
+
+        // Step 2: ownership confirmed, safe to delete by id alone
         await prisma.application.delete({
-            where: { id: req.params.id, userId: req.user.userId }
+            where: { id }
         });
 
         res.status(200).json({success: true, message: 'Application deleted successfully'});
     } catch (error) {
-        if (error.code === 'P2025') {
-            return res.status(404).json({success: false, message: 'Application not found'});
-        }
         console.error(error);
         res.status(500).json({success: false, message: 'Server error while deleting application'});
     }
