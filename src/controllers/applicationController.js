@@ -4,6 +4,8 @@ const { parsePaginationParams, buildPaginationMetadata } = require('../utils/pag
 const cloudinary = require('../config/cloudinary.config');
 const streamifier = require('streamifier');
 const { PDFParse } = require('pdf-parse');
+const groq = require('../config/groq.config');
+const { parseAndValidateJdMatchResult } = require('../validators/jdMatchResultSchema');
 
 // Helper: uploads a Buffer (from Multer memoryStorage) to Cloudinary via a stream
 const uploadBufferToCloudinary = (buffer) => {
@@ -245,4 +247,83 @@ exports.getApplicationStats = async (req, res) => {
         console.error('Error fetching application stats:', error);
         res.status(500).json({ success: false, message: 'Server error while fetching application stats' });
     }
+}
+exports.analyzeJdMatch = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.userId;
+        let jdText = req.body.jdText;
+
+        // Validate input
+        if (!jdText) {
+            return res.status(400).json({ success: false, message: 'JD text is required for analysis' });
+        }
+
+        // confirm this application exists AND belongs to this user
+        const application = await prisma.application.findFirst({where:  { id, userId }});
+        if (!application) {
+            return res.status(404).json({ success: false, message: 'Application not found' });
+        }
+
+        if(application.resumeText === null){
+            return res.status(400).json({ success: false, message: 'No resume text available for this application. Please upload a text-based PDF resume first.' });
+        }
+
+        // Build the prompt and call the LLM
+        const prompt = buildJdMatchPrompt(application.resumeText, jdText);
+        const llmResponse = await callLLM(prompt);
+
+        // Parse the LLM response and return insights to the frontend
+        const matchResult = parseAndValidateJdMatchResult(llmResponse);
+
+        if (!matchResult) {
+            return res.status(500).json({ success: false, message: 'Failed to analyze JD match. Please try again.' });
+        }
+
+        const updatedApplication = await prisma.application.update({
+            where: { id },
+            data: {
+                jdText,
+                jdMatchResult: matchResult,
+            }
+        });
+        res.status(200).json({ success: true, data: matchResult });
+    } catch (error) {
+        console.error('Error analyzing JD match:', error);
+        res.status(500).json({ success: false, message: 'Server error while analyzing JD match' });
+    }
+}
+
+const buildJdMatchPrompt = (resumeText, jdText) => {
+    return `You are an expert technical recruiter. Compare the following resume against the job description and analyze the match.
+
+    RESUME:
+    ${resumeText}
+
+    JOB DESCRIPTION:
+    ${jdText}
+
+    Respond with a JSON object in EXACTLY this shape, with no extra keys:
+    {
+        "score": <integer 0-100, overall match percentage>,
+        "matchedSkills": [<array of strings - skills/requirements found in BOTH>],
+        "missingSkills": [<array of strings - requirements in the JD but not evident in the resume>],
+        "verdict": "<one sentence, plain language summary of the fit>"
+    }
+        `;
+}
+
+const callLLM = async (prompt) => {
+    const response = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+            { role: "user", content: prompt }
+        ],
+        response_format: {
+            type: "json_object",
+        },
+    });
+
+    const rawText = response.choices[0].message.content;
+    return rawText;
 }
