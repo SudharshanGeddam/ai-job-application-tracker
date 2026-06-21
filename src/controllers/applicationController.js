@@ -3,6 +3,7 @@ const { createApplicationSchema } = require('../validators/applicationValidator'
 const { parsePaginationParams, buildPaginationMetadata } = require('../utils/pagination.utils');
 const cloudinary = require('../config/cloudinary.config');
 const streamifier = require('streamifier');
+const { PDFParse } = require('pdf-parse');
 
 // Helper: uploads a Buffer (from Multer memoryStorage) to Cloudinary via a stream
 const uploadBufferToCloudinary = (buffer) => {
@@ -17,6 +18,24 @@ const uploadBufferToCloudinary = (buffer) => {
         streamifier.createReadStream(buffer).pipe(uploadStream);
     });
 };
+
+// Extract text content from a PDF buffer using pdf-parse
+const extractTextFromPdfBuffer = async (buffer) => {
+    try {
+        const parser =  new PDFParse({data: buffer});
+        const result = await parser.getText();
+        let text = result.text.trim();
+
+        if (text.length === 0) {
+            throw new Error('PDF contains no extractable text');
+        }
+
+        return text;
+    } catch (error) {
+        console.error('Error extracting text from PDF:', error);
+        return null;
+    }
+}
     
 // Get all applications
 exports.getAllApplications = async (req, res) => {
@@ -87,22 +106,34 @@ exports.createApplication = async (req, res) => {
 
         const data = validationResult.data;
 
-        // If a resume file was uploaded, send it to Cloudinary and get the real URL
+        // If a resume file was uploaded, send it to Cloudinary and get the real URL. Also attempt to extract text content if it's a PDF.
         let resumeUrl = null;
+        let resumeText = null;
         if (req.file) {
-            const result = await uploadBufferToCloudinary(req.file.buffer);
-            resumeUrl = result.secure_url;
+            const [uploadResult, extractedText] = await Promise.all([
+                uploadBufferToCloudinary(req.file.buffer),
+                extractTextFromPdfBuffer(req.file.buffer)
+            ]);
+            resumeUrl = uploadResult.secure_url;
+            resumeText = extractedText;
         }
 
         const newApplication = await prisma.application.create({
             data: {
                 ...data,
                 resumeUrl,
+                resumeText,
                 userId: req.user.userId,
             }
         });
 
-        res.status(201).json({success: true, data: newApplication});
+        const response = {success: true, data: newApplication};
+
+        if (req.file && resumeText === null) {
+            response.warning = 'Resume uploaded, but text could not be extracted. AI features like JD match and feedback won\'t work for this resume until you re-upload a text-based PDF.';
+        }
+
+        res.status(201).json(response);
     } catch (error) {
         console.error(error);
         res.status(500).json({success: false, message: 'Server error while creating new application'});
@@ -127,9 +158,14 @@ exports.updateApplication = async (req, res) => {
 
         // If a new resume file was uploaded, send it to Cloudinary and get the real URL
         let resumeUrl = undefined; // undefined = "don't touch this field"
+        let resumeText = undefined;
         if (req.file) {
-            const result = await uploadBufferToCloudinary(req.file.buffer);
-            resumeUrl = result.secure_url;
+            const [uploadResult, extractedText] = await Promise.all([
+                uploadBufferToCloudinary(req.file.buffer),
+                extractTextFromPdfBuffer(req.file.buffer)
+            ]);
+            resumeUrl = uploadResult.secure_url;
+            resumeText = extractedText;
         }
 
         // Step 2: ownership confirmed, safe to update by id alone
@@ -143,9 +179,16 @@ exports.updateApplication = async (req, res) => {
                 notes,
                 appliedDate,
                 ...(resumeUrl !== undefined && { resumeUrl }), // Only update resumeUrl if a new file is provided
+                ...(resumeText !== undefined && { resumeText }), // Only update resumeText if a new file is provided
             }
         });
-        res.json({success: true, data: application});
+
+        const response = {success: true, data: application};
+
+        if (req.file && resumeText === null) {
+            response.warning = 'Resume uploaded, but text could not be extracted. AI features like JD match and feedback won\'t work for this resume until you re-upload a text-based PDF.';
+        }
+        res.json(response);
     } catch (error) {
         console.error(error);
         res.status(500).json({success: false, message: 'Server error while updating application'});
