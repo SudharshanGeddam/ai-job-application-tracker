@@ -1,8 +1,10 @@
 const prisma = require('../config/prisma');
 const groq = require('../config/groq.config');
 const { parseAndValidateInterviewTips } = require('../validators/interviewTips.validator');
+const { callGroqWithRetry } = require('../utils/aiCall.utils');
 
 async function generateInterviewTips(req, res) {
+try {
     const { id } = req.params;
     const userId = req.user.userId;
 
@@ -59,7 +61,8 @@ Do NOT return fewer items than the minimum stated.
 Do NOT give generic advice. Every tip must reference the specific role or skills listed above.
 `;
 
-    const completion = await groq.chat.completions.create({
+    const completion = await callGroqWithRetry(
+    (signal) => groq.chat.completions.create({
         model: "llama-3.3-70b-versatile",
         messages: [
             {
@@ -69,8 +72,10 @@ Do NOT give generic advice. Every tip must reference the specific role or skills
         ],
         response_format: {
             type: "json_object"
-        }
-    });
+        },
+        signal,
+    })
+);
 
     const rawText = completion.choices[0].message.content;
     const parsed = JSON.parse(rawText);
@@ -93,6 +98,14 @@ Do NOT give generic advice. Every tip must reference the specific role or skills
         },
         message: "Interview tips generated successfully"
     });
+} catch (error) {
+    console.error("Error generating interview tips:", error);
+    return res.status(error.statusCode || 500).json({
+        success: false,
+        data: null,
+        message: "An error occurred while generating interview tips. Please try again later."
+    });
+}
 }
 
 module.exports = {

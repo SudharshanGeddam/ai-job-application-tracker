@@ -8,6 +8,7 @@ const groq = require('../config/groq.config');
 const { parseAndValidateJdMatchResult } = require('../validators/jdMatchResultSchema');
 const { parseAndValidateTalkingPoints, parseAndValidateCoverLetterDraft } = require('../validators/coverLetterSchema');
 const { buildTalkingPointsPrompt, buildCoverLetterDraftPrompt } = require('../services/coverLetterPrompt'); 
+const { callGroqWithRetry } = require('../utils/aiCall.utils');
 
 // Helper: uploads a Buffer (from Multer memoryStorage) to Cloudinary via a stream
 const uploadBufferToCloudinary = (buffer) => {
@@ -393,16 +394,19 @@ exports.generateCoverLetter = async (req, res) => {
 }
 
 const callLLM = async (prompt) => {
-    const response = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-            { role: "user", content: prompt }
-        ],
-        response_format: {
-            type: "json_object",
-        },
-    });
+    const response = await callGroqWithRetry(
+        (signal) => groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+                { role: "user", content: prompt }
+            ],
+            response_format: {
+                type: "json_object",
+            },
+            signal,
+        })
+    );
 
     const rawText = response.choices[0].message.content;
     return rawText;
-}
+};
