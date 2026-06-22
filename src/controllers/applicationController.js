@@ -297,23 +297,35 @@ exports.analyzeJdMatch = async (req, res) => {
 }
 
 const buildJdMatchPrompt = (resumeText, jdText) => {
-    return `You are an expert technical recruiter. Compare the following resume against the job description and analyze the match.
+    return `
+You are a senior technical recruiter with experience evaluating candidates for software engineering roles at product companies.
 
-    RESUME:
-    ${resumeText}
+### RESUME
+${resumeText}
 
-    JOB DESCRIPTION:
-    ${jdText}
+### JOB DESCRIPTION
+${jdText}
 
-    Respond with a JSON object in EXACTLY this shape, with no extra keys:
-    {
-        "score": <integer 0-100, overall match percentage>,
-        "matchedSkills": [<array of strings - skills/requirements found in BOTH>],
-        "missingSkills": [<array of strings - requirements in the JD but not evident in the resume>],
-        "verdict": "<one sentence, plain language summary of the fit>"
-    }
-        `;
+### TASK
+Think step by step:
+1. Identify every required skill, tool, and qualification listed in the job description
+2. Check which of those are clearly demonstrated in the resume
+3. Note which are absent or unclear in the resume
+4. Calculate an overall match score based on that analysis
+
+### OUTPUT CONTRACT
+Return ONLY a raw JSON object. No markdown. No code fences. No explanation before or after.
+
+{
+  "score": <integer between 0 and 100 — whole numbers only, no decimals>,
+  "matchedSkills": ["2 to 15 strings — skills present in both resume and JD"],
+  "missingSkills": ["1 to 10 strings — requirements in the JD not evident in the resume"],
+  "verdict": "<one sentence, 30 to 200 characters, plain English summary of the overall fit>"
 }
+
+Do NOT return a decimal score. Do NOT add keys beyond these four. Do NOT use markdown formatting.
+`.trim();
+};
 
 exports.generateCoverLetter = async (req, res) => {
     try {

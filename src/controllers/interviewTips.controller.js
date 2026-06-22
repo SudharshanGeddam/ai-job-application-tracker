@@ -26,23 +26,37 @@ async function generateInterviewTips(req, res) {
     }
 
     const jd = application.jdMatchResult;
-
+    const matchedSkills = jd.matchedSkills?.length > 0 ? jd.matchedSkills.join(", " ) : "None identified";
+    const missingSkills = jd.missingSkills?.length > 0 ? jd.missingSkills.join(", ") : "None identified";
     const prompt = `
-You are an expert interview coach. Based on the following job match analysis, generate targeted interview preparation tips.
+You are a senior technical interview coach specializing in software engineering roles at product companies and startups.
 
+### CANDIDATE PROFILE
 Job Title: ${application.role}
 Match Score: ${jd.score}%
-Matched Skills: ${jd.matchedSkills.length > 0 ? jd.matchedSkills.join(", ") : "None"}
-Missing Skills: ${jd.missingSkills.length > 0 ? jd.missingSkills.join(", ") : "None"}
+Matched Skills: ${matchedSkills}
+Missing Skills: ${missingSkills}
 Verdict: ${jd.verdict}
 
-Return a JSON object with exactly these four keys:
-- technicalTips: array of strings (tips to prepare for technical rounds)
-- behavioralTips: array of strings (tips for HR/behavioral rounds)
-- questionsToAsk: array of strings (smart questions the candidate should ask the interviewer)
-- redFlags: array of strings (weak areas the candidate should prepare extra hard for)
+### TASK
+Think step by step:
+1. Identify the technical gaps from the missing skills above
+2. Identify behavioral risks based on the match score and verdict
+3. Use both to generate targeted, specific advice for this exact role and profile
 
-Return only the JSON object. No explanation outside it.
+### OUTPUT CONTRACT
+Return ONLY a raw JSON object. No markdown. No code fences. No explanation before or after.
+
+{
+  "technicalTips": ["3 to 6 strings — each 1 to 3 sentences, specific to the role and missing skills"],
+  "behavioralTips": ["2 to 5 strings — each 1 to 3 sentences, addressing risks from the match score"],
+  "questionsToAsk": ["3 to 5 strings — phrased as natural questions the candidate asks the interviewer"],
+  "redFlags": ["1 to 4 strings — each 1 to 2 sentences, naming the exact weak areas to prepare hardest"]
+}
+
+Do NOT add keys beyond these four.
+Do NOT return fewer items than the minimum stated.
+Do NOT give generic advice. Every tip must reference the specific role or skills listed above.
 `;
 
     const completion = await groq.chat.completions.create({

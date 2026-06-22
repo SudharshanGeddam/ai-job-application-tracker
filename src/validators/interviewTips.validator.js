@@ -1,10 +1,10 @@
 const { z } = require("zod");
 
 const interviewTipsSchema = z.object({
-    technicalTips: z.array(z.string()),
-    behavioralTips: z.array(z.string()),
-    questionsToAsk: z.array(z.string()),
-    redFlags: z.array(z.string()),
+    technicalTips: z.array(z.string().min(20)).min(3).max(6),
+    behavioralTips: z.array(z.string().min(20)).min(2).max(5),
+    questionsToAsk: z.array(z.string().min(10)).min(3).max(5),
+    redFlags: z.array(z.string().min(20)).min(1).max(4),
 });
 
 function parseAndValidateInterviewTips(raw) {
