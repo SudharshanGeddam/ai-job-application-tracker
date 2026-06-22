@@ -6,6 +6,8 @@ const streamifier = require('streamifier');
 const { PDFParse } = require('pdf-parse');
 const groq = require('../config/groq.config');
 const { parseAndValidateJdMatchResult } = require('../validators/jdMatchResultSchema');
+const { parseAndValidateTalkingPoints, parseAndValidateCoverLetterDraft } = require('../validators/coverLetterSchema');
+const { buildTalkingPointsPrompt, buildCoverLetterDraftPrompt } = require('../services/coverLetterPrompt'); 
 
 // Helper: uploads a Buffer (from Multer memoryStorage) to Cloudinary via a stream
 const uploadBufferToCloudinary = (buffer) => {
@@ -311,6 +313,71 @@ const buildJdMatchPrompt = (resumeText, jdText) => {
         "verdict": "<one sentence, plain language summary of the fit>"
     }
         `;
+}
+
+exports.generateCoverLetter = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.userId;
+
+        // confirm this application exists AND belongs to this user
+        const application = await prisma.application.findFirst({ where: { id, userId } });
+        if (!application) {
+            return res.status(404).json({ success: false, message: 'Application not found' });
+        }
+
+        if (!application.jdMatchResult) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please run JD match analysis before generating a cover letter.'
+            });
+        }
+
+        // LLM Call #1 — generate talking points from resume + JD + match analysis
+        const talkingPointsPrompt = buildTalkingPointsPrompt(
+            application.resumeText,
+            application.jdText,
+            application.jdMatchResult
+        );
+        const talkingPointsRaw = await callLLM(talkingPointsPrompt);
+        const talkingPoints = parseAndValidateTalkingPoints(talkingPointsRaw);
+
+        if (!talkingPoints) {
+            return res.status(500).json({ success: false, message: 'Failed to generate talking points. Please try again.' });
+        }
+
+        // LLM Call #2 — generate the draft using talking points as input
+        const draftPrompt = buildCoverLetterDraftPrompt(
+            talkingPoints,
+            application.jdText,
+            req.user.name
+        );
+        const draftRaw = await callLLM(draftPrompt);
+        const draft = parseAndValidateCoverLetterDraft(draftRaw);
+
+        if (!draft) {
+            return res.status(500).json({ success: false, message: 'Failed to generate cover letter draft. Please try again.' });
+        }
+
+        const updatedApplication = await prisma.application.update({
+            where: { id },
+            data: {
+                coverLetterTalkingPoints: talkingPoints,
+                coverLetterDraft: draft,
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            data: {
+                talkingPoints: updatedApplication.coverLetterTalkingPoints,
+                draft: updatedApplication.coverLetterDraft,
+            }
+        });
+    } catch (error) {
+        console.error('Error generating cover letter:', error);
+        res.status(500).json({ success: false, message: 'Server error while generating cover letter' });
+    }
 }
 
 const callLLM = async (prompt) => {

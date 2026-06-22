@@ -10,7 +10,8 @@ const {
     updateApplication,
     deleteApplication,
     getApplicationStats,
-    analyzeJdMatch
+    analyzeJdMatch,
+    generateCoverLetter
 } = require("../controllers/applicationController");
 
 // Apply the protect middleware to all routes in this router
@@ -23,5 +24,6 @@ router.post("/", upload.single("resume"), createApplication);
 router.put("/:id", upload.single("resume"), updateApplication);
 router.delete("/:id", deleteApplication);
 router.post("/:id/analyze-jd", analyzeJdMatch);
+router.post("/:id/cover-letter", generateCoverLetter);
 
 module.exports = router;
