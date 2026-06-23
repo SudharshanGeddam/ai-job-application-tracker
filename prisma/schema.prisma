@@ -58,4 +58,5 @@ enum Status {
   INTERVIEW
   OFFER
   REJECTED
+  STALE
 }

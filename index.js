@@ -35,6 +35,10 @@ app.get('/health', (req, res) => {
 app.use("/api/applications", applicationRoutes);
 app.use("/api/auth", authRoutes);
 
+// Background jobs
+require("./src/jobs/staleApplicationJob");
+require("./src/jobs/remainderJob");
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
