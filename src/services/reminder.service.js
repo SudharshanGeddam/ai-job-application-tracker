@@ -1,5 +1,5 @@
 const prisma = require('../config/prisma');
-const { sendEmail } = require('../src/services/email.service');
+const { sendEmail } = require('../services/email.service');
 
 const sendReminderEmails = async () => {
     const now = new Date();

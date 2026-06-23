@@ -8,6 +8,7 @@ const cors = require('cors');
 const logger = require('./src/middlewares/logger');
 const applicationRoutes = require("./src/routes/applicationRoutes");
 const authRoutes = require("./src/routes/authRoutes");
+const reminderRoutes = require("./src/routes/reminderRoutes");
 
 // Create an Express application
 const app = express();
@@ -34,6 +35,7 @@ app.get('/health', (req, res) => {
 
 app.use("/api/applications", applicationRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/reminders", reminderRoutes);
 
 // Background jobs
 require("./src/jobs/staleApplicationJob");

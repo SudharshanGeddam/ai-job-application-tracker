@@ -1,4 +1,4 @@
-const corn = require("node-cron");
+const cron = require("node-cron");
 const prisma = require("../config/prisma");
 
 cron.schedule("0 0 * * *", async () => { // Run daily at midnight
