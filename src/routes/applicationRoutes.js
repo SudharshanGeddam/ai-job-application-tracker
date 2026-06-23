@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { protect } = require("../middlewares/authMiddleware");
 const upload = require("../config/multer");
+const { aiRateLimiter } = require("../middlewares/rateLimiter");
 
 const {
     getAllApplications,
@@ -25,6 +26,8 @@ router.get("/:id", getApplicationById);
 router.post("/", upload.single("resume"), createApplication);
 router.put("/:id", upload.single("resume"), updateApplication);
 router.delete("/:id", deleteApplication);
+
+router.use(aiRateLimiter); // Apply AI rate limiter to all AI routes
 router.post("/:id/analyze-jd", analyzeJdMatch);
 router.post("/:id/cover-letter", generateCoverLetter);
 router.post("/:id/interview-tips", generateInterviewTips);

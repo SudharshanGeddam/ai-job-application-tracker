@@ -9,6 +9,7 @@ const logger = require('./src/middlewares/logger');
 const applicationRoutes = require("./src/routes/applicationRoutes");
 const authRoutes = require("./src/routes/authRoutes");
 const reminderRoutes = require("./src/routes/reminderRoutes");
+const { globalRateLimiter } = require('./src/middlewares/rateLimiter');
 
 // Create an Express application
 const app = express();
@@ -33,6 +34,7 @@ app.get('/health', (req, res) => {
     res.status(200).json({status: 'ok', uptime: process.uptime()});
 });
 
+app.use(globalRateLimiter); // Apply global rate limiter to all routes
 app.use("/api/applications", applicationRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/reminders", reminderRoutes);
