@@ -1,0 +1,43 @@
+services:
+
+  # ── Your Node.js App ──────────────────────────────────────────
+  app:
+    build: .                      # Build from the Dockerfile in this directory
+    container_name: job_tracker_app
+    ports:
+      - "3000:3000"               # host_port:container_port
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/job_tracker
+      JWT_SECRET: ${JWT_SECRET}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      PORT: 3000
+    depends_on:
+      db:
+        condition: service_healthy   # Wait until Postgres is actually ready
+    restart: unless-stopped
+
+  # ── PostgreSQL Database ───────────────────────────────────────
+  db:
+    image: postgres:16-alpine        # Official Postgres image
+    container_name: job_tracker_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: job_tracker
+    ports:
+      - "5433:5432"                  # Map to 5433 on host to avoid conflicts
+                                     # with your local Postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # Persist DB data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+# ── Named Volumes ─────────────────────────────────────────────────
+volumes:
+  postgres_data:                     # Docker manages this — data survives restarts
