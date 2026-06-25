@@ -1,11 +1,30 @@
-// .gitignore
+# .gitignore
 
-# Ignore node_modules
+# Node dependencies
 node_modules/
 
-# Ignore .env files
+# Environment variable files (contain secrets — never commit these)
 .env
-/src/generated/prisma
+.env.local
+.env.production
 
-# Ignore scritps
+# Prisma generated client (platform-specific, regenerated on install)
+src/generated/prisma
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Build output
+dist/
+
+# Test coverage reports
+coverage/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Local scripts (dev utilities, not part of the app)
 scripts/
