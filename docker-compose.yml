@@ -9,10 +9,13 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/job_tracker
       JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
       GROQ_API_KEY: ${GROQ_API_KEY}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       PORT: 3000
     depends_on:
       db:

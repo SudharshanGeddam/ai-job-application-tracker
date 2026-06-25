@@ -1,28 +1,53 @@
-# ─── Stage: Base Image ───────────────────────────────────────────
-# node:20-alpine = Node v20 on Alpine Linux (tiny, ~50MB vs ~900MB)
-FROM node:20-alpine
+# ─── Stage 1: Builder ────────────────────────────────────────────────────────
+# Full environment with dev tools to install all deps and generate Prisma client
+FROM node:20-alpine AS builder
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# ─── Install Dependencies ────────────────────────────────────────
-# Copy ONLY package files first — Docker caches this layer.
-# If your code changes but package.json doesn't, npm install
-# won't re-run. This makes rebuilds much faster.
+# Copy package files first — Docker caches this layer.
+# If only source code changes (not package.json), npm install won't re-run.
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm install
+# Install ALL dependencies (including devDependencies like prisma CLI)
+RUN npm ci
 
-# ─── Copy Source Code ────────────────────────────────────────────
+# Generate Prisma Client inside the container (platform-specific binaries for Linux)
+# Uses a placeholder URL since the real DB isn't available at build time
+RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" \
+    npx prisma generate
+
+# Copy the rest of the source code
 COPY . .
 
-# ─── Generate Prisma Client ──────────────────────────────────────
-# Prisma generates platform-specific binaries.
-# We MUST run this inside the container (Linux), not on Windows.
-RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" npx prisma generate
+# ─── Stage 2: Production ──────────────────────────────────────────────────────
+# Lean image — only production dependencies, no dev tools
+FROM node:20-alpine AS production
 
-# ─── Expose & Start ──────────────────────────────────────────────
+# Set Node environment to production — disables dev-only features,
+# enables optimizations, and prevents accidental dev dependencies from loading
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+# Copy package files for production install
+COPY package*.json ./
+
+# Install ONLY production dependencies — skips devDependencies (nodemon, prisma CLI, etc.)
+# npm ci is faster and more reliable than npm install for CI/CD
+RUN npm ci --omit=dev
+
+# Copy the Prisma schema and the generated client from the builder stage
+COPY prisma ./prisma/
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Copy application source code
+COPY src ./src
+COPY index.js ./
+
+# ─── Expose & Start ───────────────────────────────────────────────────────────
 EXPOSE 3000
 
+# Run migrations (applies any pending DB schema changes) then start the server
+# prisma migrate deploy is safe for production — it only runs new migrations, never rolls back
 CMD ["sh", "-c", "npx prisma migrate deploy && node index.js"]
