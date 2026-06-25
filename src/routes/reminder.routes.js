@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middlewares/authMiddleware');
+const { protect } = require('../middlewares/auth.middleware');
 const {
     createReminder,
     getAllReminders,
     getReminderById,
     updateReminder,
-    deleteReminder
-} = require('../controllers/reminderController');
+    deleteReminder,
+} = require('../controllers/reminder.controller');
 
 router.use(protect);
 
