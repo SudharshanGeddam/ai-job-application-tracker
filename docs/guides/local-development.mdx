@@ -1,0 +1,88 @@
+---
+title: "Local Development"
+description: "Run the full stack locally with hot-reload. Tips for debugging, migrations, and testing AI features."
+---
+
+## Setup
+
+Follow the [Quickstart](/quickstart) to get the project running. Once set up:
+
+```bash
+npm run dev       # starts with nodemon (hot-reload)
+npm start         # starts without hot-reload (production-like)
+npm run start:prod # sets NODE_ENV=production
+```
+
+## Available Scripts
+
+| Script | Description |
+|---|---|
+| `npm run dev` | Nodemon with hot-reload — auto-restarts on file changes |
+| `npm start` | Plain `node index.js` — no hot-reload |
+| `npm run start:prod` | Sets `NODE_ENV=production` before starting |
+
+## Database Workflow
+
+```bash
+# Apply migrations to your local DB
+npx prisma migrate dev
+
+# Open Prisma Studio (visual DB browser)
+npx prisma studio
+
+# Reset the database (wipe all data + re-run migrations)
+npx prisma migrate reset
+
+# Generate the Prisma client after schema changes
+npx prisma generate
+```
+
+<Note>
+  When you add or change a model in `prisma/schema.prisma`, always run `npx prisma migrate dev --name your-migration-name` to create a migration file and regenerate the client.
+</Note>
+
+## Logs
+
+The logger middleware prints every request:
+
+```
+[2026-06-25 09:00:01] GET /api/applications - ::1
+[2026-06-25 09:00:02] POST /api/applications/abc/analyze-jd - ::1
+```
+
+Errors are prefixed with `[ERROR]`:
+
+```
+[ERROR] POST /api/auth/login — 401: Invalid email or password.
+```
+
+AI retries appear as:
+
+```
+[AI] Attempt 1/3 failed with status 429: Too many requests
+[AI] Attempt 2/3 timed out after 15000ms.
+```
+
+## Testing with Postman
+
+Import `JobTracker_Postman_Collection.json` from the repo root. The collection includes:
+
+- Pre-configured auth flows
+- File upload examples for resume upload
+- All 15+ endpoints with example payloads
+
+## Environment Tips
+
+<AccordionGroup>
+  <Accordion title="Using a cloud database (Neon / Supabase)">
+    Replace the `DATABASE_URL` in `.env` with the connection string from your cloud provider. Neon provides a free tier and works out of the box with Prisma.
+  </Accordion>
+
+  <Accordion title="Testing email reminders locally">
+    Use [Mailtrap](https://mailtrap.io) as a fake SMTP server. Set `EMAIL_USER` and `EMAIL_PASSWORD` to your Mailtrap credentials and change the service in `email.service.js` from `'gmail'` to your Mailtrap settings.
+  </Accordion>
+
+  <Accordion title="Skipping Groq calls in development">
+    If you don't have a Groq API key, you can't use AI endpoints. All other CRUD endpoints work without it.
+  </Accordion>
+</AccordionGroup>

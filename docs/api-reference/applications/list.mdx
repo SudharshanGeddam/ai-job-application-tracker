@@ -1,0 +1,97 @@
+---
+title: "List Applications"
+api: "GET /api/applications"
+description: "Fetch all job applications for the authenticated user with filtering and pagination."
+authMethod: "bearer"
+---
+
+## Query Parameters
+
+<ParamField query="page" type="number" default="1">
+  Page number for pagination.
+</ParamField>
+
+<ParamField query="limit" type="number" default="10">
+  Number of results per page. Max: 50.
+</ParamField>
+
+<ParamField query="sortBy" type="string" default="createdAt">
+  Field to sort by. Allowed values: `appliedDate`, `createdAt`, `companyName`, `role`.
+</ParamField>
+
+<ParamField query="order" type="string" default="desc">
+  Sort order. `asc` or `desc`.
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter by status. One of: `APPLIED`, `INTERVIEW`, `OFFER`, `REJECTED`, `STALE`.
+</ParamField>
+
+<ParamField query="companyName" type="string">
+  Partial, case-insensitive search by company name.
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="array">
+  Array of application objects.
+</ResponseField>
+
+<ResponseField name="pagination" type="object">
+  <Expandable title="Pagination metadata">
+    <ResponseField name="total" type="number">Total number of matching applications.</ResponseField>
+    <ResponseField name="page" type="number">Current page.</ResponseField>
+    <ResponseField name="limit" type="number">Items per page.</ResponseField>
+    <ResponseField name="totalPages" type="number">Total pages.</ResponseField>
+    <ResponseField name="hasNextPage" type="boolean"></ResponseField>
+    <ResponseField name="hasPrevPage" type="boolean"></ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash curl
+# All applications, page 2
+curl "http://localhost:3000/api/applications?page=2&limit=10" \
+  -H "Authorization: Bearer <token>"
+
+# Filter by status
+curl "http://localhost:3000/api/applications?status=INTERVIEW" \
+  -H "Authorization: Bearer <token>"
+
+# Search by company
+curl "http://localhost:3000/api/applications?companyName=google" \
+  -H "Authorization: Bearer <token>"
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid-1",
+      "userId": "user-uuid",
+      "companyName": "Acme Corp",
+      "role": "Senior Engineer",
+      "status": "INTERVIEW",
+      "jobLink": "https://jobs.acme.com/senior-eng",
+      "notes": "Technical round scheduled",
+      "appliedDate": "2026-06-01T00:00:00.000Z",
+      "resumeUrl": "https://res.cloudinary.com/.../resume.pdf",
+      "jdMatchResult": null,
+      "createdAt": "2026-06-01T09:00:00.000Z",
+      "updatedAt": "2026-06-10T09:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "total": 23,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 3,
+    "hasNextPage": true,
+    "hasPrevPage": false
+  }
+}
+```
+</ResponseExample>

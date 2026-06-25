@@ -1,0 +1,140 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "AI Job Tracker",
+  "colors": {
+    "primary": "#6366F1",
+    "light": "#818CF8",
+    "dark": "#4F46E5"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "authentication"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/ai-features",
+              "guides/file-uploads",
+              "guides/reminders",
+              "guides/error-handling",
+              "guides/rate-limiting"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "guides/local-development",
+              "guides/docker"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "API Reference",
+            "pages": [
+              "api-reference/overview"
+            ]
+          },
+          {
+            "group": "Authentication",
+            "pages": [
+              "api-reference/auth/register",
+              "api-reference/auth/login",
+              "api-reference/auth/me"
+            ]
+          },
+          {
+            "group": "Applications",
+            "pages": [
+              "api-reference/applications/list",
+              "api-reference/applications/get",
+              "api-reference/applications/create",
+              "api-reference/applications/update",
+              "api-reference/applications/delete",
+              "api-reference/applications/stats"
+            ]
+          },
+          {
+            "group": "AI Features",
+            "pages": [
+              "api-reference/ai/analyze-jd",
+              "api-reference/ai/cover-letter",
+              "api-reference/ai/interview-tips"
+            ]
+          },
+          {
+            "group": "Reminders",
+            "pages": [
+              "api-reference/reminders/list",
+              "api-reference/reminders/get",
+              "api-reference/reminders/create",
+              "api-reference/reminders/update",
+              "api-reference/reminders/delete"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/SudharshanGeddam/ai-job-application-tracker",
+          "icon": "github"
+        },
+        {
+          "anchor": "Postman Collection",
+          "href": "https://github.com/SudharshanGeddam/ai-job-application-tracker",
+          "icon": "rectangle-terminal"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "/"
+  },
+  "background": {
+    "color": {
+      "light": "#F8F7FF",
+      "dark": "#0A0A0F"
+    },
+    "decoration": "gradient"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/SudharshanGeddam/ai-job-application-tracker"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get Started",
+      "href": "/quickstart"
+    }
+  },
+  "search": {
+    "prompt": "Search documentation..."
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/SudharshanGeddam/ai-job-application-tracker"
+    }
+  }
+}

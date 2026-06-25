@@ -1,0 +1,81 @@
+---
+title: "AI Job Tracker API"
+description: "A production-grade REST API for tracking job applications with AI-powered features — resume analysis, cover letter generation, and personalized interview preparation."
+---
+
+<img
+  className="block dark:hidden"
+  src="/images/hero-light.png"
+  alt="AI Job Tracker Hero"
+/>
+
+## What is AI Job Tracker?
+
+AI Job Tracker is a backend API that helps job seekers **organize, track, and supercharge** their job search. It goes beyond a simple spreadsheet by combining a structured application tracker with a suite of AI features powered by **Groq (Llama 3.3-70B)**.
+
+<CardGroup cols={2}>
+  <Card
+    title="Track Applications"
+    icon="briefcase"
+    href="/api-reference/applications/list"
+  >
+    Create, update, and filter job applications with full pagination and status tracking.
+  </Card>
+  <Card
+    title="AI Resume Analysis"
+    icon="brain"
+    href="/api-reference/ai/analyze-jd"
+  >
+    Match your resume against any job description and get a scored breakdown of strengths and gaps.
+  </Card>
+  <Card
+    title="Cover Letter Generator"
+    icon="pen-nib"
+    href="/api-reference/ai/cover-letter"
+  >
+    Generate tailored cover letters in seconds, grounded in your actual resume evidence.
+  </Card>
+  <Card
+    title="Interview Prep"
+    icon="graduation-cap"
+    href="/api-reference/ai/interview-tips"
+  >
+    Get role-specific technical tips, behavioral coaching, and smart questions to ask.
+  </Card>
+</CardGroup>
+
+## Key Features
+
+- **JWT Authentication** — Secure register/login flow with token-based auth
+- **Resume Upload** — PDF upload via Cloudinary with automatic text extraction
+- **JD Match Score** — AI-scored gap analysis between your resume and a job description
+- **AI Cover Letter** — Two-stage LLM pipeline: talking points → polished draft
+- **Interview Tips** — Personalized tips based on your match score and skill gaps
+- **Reminders** — Schedule and receive email reminders tied to specific applications
+- **Background Jobs** — Auto-marks stale applications after 30 days of inactivity
+- **Rate Limiting** — Per-route rate limits to protect AI endpoints
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js (Express 5) |
+| Database | PostgreSQL via Prisma ORM |
+| AI | Groq (Llama 3.3-70B) |
+| File Storage | Cloudinary |
+| Email | Nodemailer (Gmail) |
+| Validation | Zod |
+| Deployment | Docker + docker-compose |
+
+## API at a Glance
+
+| Group | Endpoints |
+|---|---|
+| Auth | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` |
+| Applications | `GET /POST /PUT /DELETE /api/applications` + stats |
+| AI | `POST /:id/analyze-jd`, `POST /:id/cover-letter`, `POST /:id/interview-tips` |
+| Reminders | `GET /POST /PATCH /DELETE /api/reminders` |
+
+<Note>
+  All API responses follow a consistent envelope: `{ success: boolean, data: any, message?: string }`.
+</Note>

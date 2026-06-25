@@ -1,0 +1,83 @@
+---
+title: "Generate Interview Tips"
+api: "POST /api/applications/{id}/interview-tips"
+description: "Get personalized, role-specific interview tips based on your JD match analysis."
+authMethod: "bearer"
+---
+
+<Note>
+  **JD Match Analysis must be completed first.** The tips are grounded in your specific match score, matched skills, and skill gaps — not generic advice.
+</Note>
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the application.
+</ParamField>
+
+No request body needed — all context is read from the stored `jdMatchResult`.
+
+## Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="Interview tips result">
+    <ResponseField name="applicationId" type="string">The application UUID.</ResponseField>
+    <ResponseField name="jobTitle" type="string">The role you applied for.</ResponseField>
+    <ResponseField name="interviewTips" type="object">
+      <Expandable title="Tips breakdown">
+        <ResponseField name="technicalTips" type="array">3–6 specific technical preparation tips referencing the JD skills.</ResponseField>
+        <ResponseField name="behavioralTips" type="array">2–5 behavioral coaching tips based on match score risks.</ResponseField>
+        <ResponseField name="questionsToAsk" type="array">3–5 smart questions to ask the interviewer.</ResponseField>
+        <ResponseField name="redFlags" type="array">1–4 critical weak areas to focus on most.</ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash curl
+curl -X POST http://localhost:3000/api/applications/uuid-here/interview-tips \
+  -H "Authorization: Bearer <token>"
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "message": "Interview tips generated successfully",
+  "data": {
+    "applicationId": "uuid-here",
+    "jobTitle": "Senior Frontend Engineer",
+    "interviewTips": {
+      "technicalTips": [
+        "Study GraphQL schema design — it's listed as required and absent from your resume. Spend time on schema stitching and resolvers.",
+        "Be ready to walk through a complex TypeScript component with generics from a real project.",
+        "Prepare a performance optimization story — bundle splitting, lazy loading, Core Web Vitals."
+      ],
+      "behavioralTips": [
+        "With a 78% match, proactively address the GraphQL gap. Show self-awareness: 'I've been upskilling on GraphQL via...'",
+        "Emphasize cross-team collaboration given the JD mentions working with the backend team."
+      ],
+      "questionsToAsk": [
+        "What does the migration roadmap look like for the existing PHP backend?",
+        "How does the team handle performance budgets and Core Web Vitals monitoring?",
+        "What's the current test coverage target for the frontend?"
+      ],
+      "redFlags": [
+        "GraphQL — explicitly required and missing. Must address this proactively in the interview.",
+        "AWS Lambda — if cloud experience comes up, be honest about the boundary of your knowledge."
+      ]
+    }
+  }
+}
+```
+
+```json 400 Missing JD Match
+{
+  "success": false,
+  "status": "fail",
+  "message": "JD match analysis not found. Please run JD match analysis first."
+}
+```
+</ResponseExample>

@@ -1,0 +1,40 @@
+---
+title: "Delete Application"
+api: "DELETE /api/applications/{id}"
+description: "Permanently delete a job application and all associated reminders."
+authMethod: "bearer"
+---
+
+<Warning>
+  This action is irreversible. Deleting an application also cascades to all associated reminders.
+</Warning>
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the application to delete.
+</ParamField>
+
+<RequestExample>
+```bash curl
+curl -X DELETE http://localhost:3000/api/applications/uuid-here \
+  -H "Authorization: Bearer <token>"
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "message": "Application deleted successfully"
+}
+```
+
+```json 404 Not Found
+{
+  "success": false,
+  "status": "fail",
+  "message": "Application not found"
+}
+```
+</ResponseExample>

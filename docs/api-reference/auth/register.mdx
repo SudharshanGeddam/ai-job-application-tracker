@@ -1,0 +1,84 @@
+---
+title: "Register"
+api: "POST /api/auth/register"
+description: "Create a new user account."
+---
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  Full name of the user. Max 100 characters.
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  A valid email address. Must be unique — returns `409` if already registered.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Minimum 8 characters, max 72. Stored as a bcrypt hash.
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Always `true` on success.
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  `"Account created successfully."`
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  <Expandable title="User object">
+    <ResponseField name="id" type="string">UUID of the created user.</ResponseField>
+    <ResponseField name="name" type="string">The user's name.</ResponseField>
+    <ResponseField name="email" type="string">The user's email.</ResponseField>
+    <ResponseField name="createdAt" type="string">ISO 8601 timestamp.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash curl
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "password": "securepass123"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201 Created
+{
+  "success": true,
+  "message": "Account created successfully.",
+  "data": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "createdAt": "2026-06-25T04:00:00.000Z"
+  }
+}
+```
+
+```json 400 Validation Error
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": {
+    "email": ["Please provide a valid email address"],
+    "password": ["Password must be at least 8 characters long"]
+  }
+}
+```
+
+```json 409 Email Already Exists
+{
+  "success": false,
+  "status": "fail",
+  "message": "An account with this email already exists."
+}
+```
+</ResponseExample>

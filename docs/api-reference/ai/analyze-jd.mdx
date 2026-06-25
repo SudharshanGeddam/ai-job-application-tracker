@@ -1,0 +1,81 @@
+---
+title: "Analyze JD Match"
+api: "POST /api/applications/{id}/analyze-jd"
+description: "Run AI analysis to match the uploaded resume against a job description. Returns a score, matched skills, missing skills, and a verdict."
+authMethod: "bearer"
+---
+
+<Note>
+  The application must have a text-based PDF resume uploaded first. Run this before requesting a cover letter or interview tips.
+</Note>
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the application.
+</ParamField>
+
+## Request Body
+
+<ParamField body="jdText" type="string" required>
+  The full text of the job description. Copy and paste the entire posting. The more complete, the better the analysis.
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="JD match result">
+    <ResponseField name="score" type="number">
+      Overall match score from 0–100. Whole number.
+    </ResponseField>
+    <ResponseField name="matchedSkills" type="array">
+      Skills present in both the resume and the JD. Array of strings.
+    </ResponseField>
+    <ResponseField name="missingSkills" type="array">
+      Requirements in the JD not clearly evidenced in the resume. Array of strings.
+    </ResponseField>
+    <ResponseField name="verdict" type="string">
+      One-sentence plain English summary of overall fit.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash curl
+curl -X POST http://localhost:3000/api/applications/uuid-here/analyze-jd \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jdText": "We are looking for a Senior Frontend Engineer with 5+ years of experience in React, TypeScript, and GraphQL..."
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "data": {
+    "score": 78,
+    "matchedSkills": ["React", "TypeScript", "Node.js", "REST APIs", "Git"],
+    "missingSkills": ["GraphQL", "AWS Lambda"],
+    "verdict": "Strong frontend match with solid TypeScript experience, but lacks cloud deployment and GraphQL exposure required for the senior role."
+  }
+}
+```
+
+```json 400 No Resume Text
+{
+  "success": false,
+  "status": "fail",
+  "message": "No resume text available. Please upload a text-based PDF resume first."
+}
+```
+
+```json 429 AI Rate Limit
+{
+  "success": false,
+  "message": "Too many requests, please try again after 1 hour."
+}
+```
+</ResponseExample>

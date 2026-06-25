@@ -1,0 +1,54 @@
+---
+title: "Rate Limiting"
+description: "The API uses tiered rate limits to protect endpoints. Understand the limits and how to handle 429 responses."
+---
+
+## Rate Limit Tiers
+
+The API applies three distinct rate limiters depending on the route:
+
+| Tier | Routes | Limit | Window |
+|---|---|---|---|
+| **Auth** | `/api/auth/register`, `/api/auth/login`, `/api/auth/me` | 10 requests | 15 minutes |
+| **Global** | All other routes | 100 requests | 15 minutes |
+| **AI** | `/:id/analyze-jd`, `/:id/cover-letter`, `/:id/interview-tips` | 20 requests | 1 hour |
+
+## Rate Limit Headers
+
+Every response includes headers telling you your current usage:
+
+```
+RateLimit-Limit: 100
+RateLimit-Remaining: 87
+RateLimit-Reset: 1719277200
+```
+
+## Handling 429 Responses
+
+When you exceed a rate limit, the API returns `429 Too Many Requests`:
+
+```json
+{
+  "success": false,
+  "message": "Too many requests, please try again after 15 minutes."
+}
+```
+
+Check the `RateLimit-Reset` header for the Unix timestamp when the window resets.
+
+```javascript
+const response = await fetch('/api/applications');
+if (response.status === 429) {
+  const resetAt = response.headers.get('RateLimit-Reset');
+  const waitMs = (parseInt(resetAt) * 1000) - Date.now();
+  console.log(`Rate limited. Retry after ${Math.ceil(waitMs / 1000)}s`);
+}
+```
+
+## Why Separate AI Limits?
+
+AI endpoints call the Groq LLM and incur real cost per request. The 1-hour / 20-request window prevents runaway usage while still being generous for normal individual use.
+
+<Note>
+  Rate limits are **per IP address**, not per user. In production, you may want to implement per-user limits using a Redis-backed store.
+</Note>

@@ -1,0 +1,58 @@
+---
+title: "Update Application"
+api: "PUT /api/applications/{id}"
+description: "Update an existing application. All fields are optional. Attach a new resume to replace the existing one."
+authMethod: "bearer"
+---
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the application to update.
+</ParamField>
+
+## Request Body
+
+All fields are optional — send only what you want to change.
+
+<ParamField body="companyName" type="string">Company name.</ParamField>
+<ParamField body="role" type="string">Job title.</ParamField>
+<ParamField body="status" type="string">
+  One of: `APPLIED`, `INTERVIEW`, `OFFER`, `REJECTED`, `STALE`.
+</ParamField>
+<ParamField body="appliedDate" type="string">ISO 8601 date.</ParamField>
+<ParamField body="jobLink" type="string">URL of the job posting.</ParamField>
+<ParamField body="notes" type="string">Personal notes.</ParamField>
+<ParamField body="resume" type="file">
+  New resume file. Replaces the existing `resumeUrl` and `resumeText`.
+</ParamField>
+
+<RequestExample>
+```bash Update Status
+curl -X PUT http://localhost:3000/api/applications/uuid-here \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "INTERVIEW", "notes": "Scheduled for Tuesday"}'
+```
+
+```bash Replace Resume
+curl -X PUT http://localhost:3000/api/applications/uuid-here \
+  -H "Authorization: Bearer <token>" \
+  -F "status=OFFER" \
+  -F "resume=@/path/to/updated-resume.pdf"
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "data": {
+    "id": "uuid-here",
+    "status": "INTERVIEW",
+    "notes": "Scheduled for Tuesday",
+    "updatedAt": "2026-06-25T09:00:00.000Z"
+  }
+}
+```
+</ResponseExample>

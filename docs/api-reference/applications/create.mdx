@@ -1,0 +1,93 @@
+---
+title: "Create Application"
+api: "POST /api/applications"
+description: "Create a new job application. Optionally attach a PDF resume."
+authMethod: "bearer"
+---
+
+<Note>
+  This endpoint accepts `multipart/form-data` to support file uploads. If you're not uploading a resume, you can send `application/json`.
+</Note>
+
+## Request Body
+
+<ParamField body="companyName" type="string" required>
+  Name of the company. Min 1 character.
+</ParamField>
+
+<ParamField body="role" type="string" required>
+  Job title / role you applied for. Min 1 character.
+</ParamField>
+
+<ParamField body="status" type="string" required>
+  Initial status. One of: `APPLIED`, `INTERVIEW`, `OFFER`, `REJECTED`, `STALE`.
+</ParamField>
+
+<ParamField body="appliedDate" type="string">
+  ISO 8601 date string. Defaults to the current time if not provided.
+</ParamField>
+
+<ParamField body="jobLink" type="string">
+  URL of the job posting. Must be a valid URL if provided.
+</ParamField>
+
+<ParamField body="notes" type="string">
+  Any personal notes about the application.
+</ParamField>
+
+<ParamField body="resume" type="file">
+  A PDF, JPEG, PNG, or WebP file. Max 5MB. Only text-based PDFs support AI features.
+</ParamField>
+
+<RequestExample>
+```bash With Resume (multipart)
+curl -X POST http://localhost:3000/api/applications \
+  -H "Authorization: Bearer <token>" \
+  -F "companyName=Acme Corp" \
+  -F "role=Senior Engineer" \
+  -F "status=APPLIED" \
+  -F "jobLink=https://jobs.acme.com/123" \
+  -F "notes=Referred by John" \
+  -F "resume=@/path/to/resume.pdf"
+```
+
+```bash Without Resume (JSON)
+curl -X POST http://localhost:3000/api/applications \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "companyName": "Acme Corp",
+    "role": "Senior Engineer",
+    "status": "APPLIED"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201 Created
+{
+  "success": true,
+  "data": {
+    "id": "new-uuid",
+    "userId": "user-uuid",
+    "companyName": "Acme Corp",
+    "role": "Senior Engineer",
+    "status": "APPLIED",
+    "jobLink": "https://jobs.acme.com/123",
+    "notes": "Referred by John",
+    "appliedDate": "2026-06-25T04:00:00.000Z",
+    "resumeUrl": "https://res.cloudinary.com/.../resume.pdf",
+    "resumeText": "Jane Doe — Senior Software Engineer...",
+    "createdAt": "2026-06-25T04:00:00.000Z"
+  }
+}
+```
+
+```json 201 With Warning (unreadable PDF)
+{
+  "success": true,
+  "data": { "...application..." },
+  "warning": "Resume uploaded, but text could not be extracted. AI features (JD match, cover letter, interview tips) require a text-based PDF."
+}
+```
+</ResponseExample>

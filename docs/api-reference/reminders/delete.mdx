@@ -1,0 +1,34 @@
+---
+title: "Delete Reminder"
+api: "DELETE /api/reminders/{id}"
+description: "Permanently delete a reminder."
+authMethod: "bearer"
+---
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>UUID of the reminder to delete.</ParamField>
+
+<RequestExample>
+```bash curl
+curl -X DELETE http://localhost:3000/api/reminders/reminder-uuid \
+  -H "Authorization: Bearer <token>"
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "message": "Reminder deleted successfully"
+}
+```
+
+```json 403 Forbidden
+{
+  "success": false,
+  "status": "fail",
+  "message": "You do not have permission to delete this reminder"
+}
+```
+</ResponseExample>

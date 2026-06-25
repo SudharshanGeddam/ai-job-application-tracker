@@ -1,0 +1,47 @@
+---
+title: "Get Current User"
+api: "GET /api/auth/me"
+description: "Fetch the authenticated user's profile. Requires a valid JWT."
+authMethod: "bearer"
+---
+
+## Response
+
+<ResponseField name="success" type="boolean">Always `true` on success.</ResponseField>
+
+<ResponseField name="data" type="object">
+  <Expandable title="User profile">
+    <ResponseField name="id" type="string">User's UUID.</ResponseField>
+    <ResponseField name="name" type="string">User's name.</ResponseField>
+    <ResponseField name="email" type="string">User's email.</ResponseField>
+    <ResponseField name="createdAt" type="string">ISO 8601 account creation timestamp.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash curl
+curl http://localhost:3000/api/auth/me \
+  -H "Authorization: Bearer <token>"
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "data": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "createdAt": "2026-06-25T04:00:00.000Z"
+  }
+}
+```
+
+```json 401 Unauthorized
+{
+  "success": false,
+  "message": "Access denied. No token provided."
+}
+```
+</ResponseExample>

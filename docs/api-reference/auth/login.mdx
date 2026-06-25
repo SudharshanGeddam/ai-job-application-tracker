@@ -1,0 +1,72 @@
+---
+title: "Login"
+api: "POST /api/auth/login"
+description: "Authenticate and receive a JWT token."
+---
+
+## Request Body
+
+<ParamField body="email" type="string" required>
+  The user's registered email address.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's password.
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean">Always `true` on success.</ResponseField>
+
+<ResponseField name="message" type="string">`"Login successful."`</ResponseField>
+
+<ResponseField name="data" type="object">
+  <Expandable title="Login response data">
+    <ResponseField name="token" type="string">
+      A signed JWT. Valid for the duration set in `JWT_EXPIRES_IN` (default: 7 days). Include this in all subsequent requests as `Authorization: Bearer <token>`.
+    </ResponseField>
+    <ResponseField name="user" type="object">
+      <Expandable title="User object">
+        <ResponseField name="id" type="string">User's UUID.</ResponseField>
+        <ResponseField name="name" type="string">User's name.</ResponseField>
+        <ResponseField name="email" type="string">User's email.</ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash curl
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "jane@example.com",
+    "password": "securepass123"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "message": "Login successful.",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Jane Doe",
+      "email": "jane@example.com"
+    }
+  }
+}
+```
+
+```json 401 Invalid Credentials
+{
+  "success": false,
+  "status": "fail",
+  "message": "Invalid email or password."
+}
+```
+</ResponseExample>

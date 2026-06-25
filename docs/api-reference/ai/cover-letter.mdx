@@ -1,0 +1,89 @@
+---
+title: "Generate Cover Letter"
+api: "POST /api/applications/{id}/cover-letter"
+description: "Generate a personalized cover letter using a two-stage AI pipeline: talking points extraction → full draft."
+authMethod: "bearer"
+---
+
+<Note>
+  **JD Match Analysis must be completed first.** Run `POST /:id/analyze-jd` before calling this endpoint. The cover letter generation uses the match analysis as context.
+</Note>
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the application.
+</ParamField>
+
+This endpoint requires no request body — it uses data already stored on the application:
+- `resumeText` — the extracted resume text
+- `jdText` — the stored job description
+- `jdMatchResult` — the AI match analysis
+
+## How It Works
+
+```
+LLM Call 1: Extract 2-3 talking points grounded in resume evidence
+LLM Call 2: Write full cover letter draft using those talking points
+```
+
+Both outputs are saved to the application record.
+
+## Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="Cover letter result">
+    <ResponseField name="talkingPoints" type="object">
+      Structured talking points used to ground the draft.
+    </ResponseField>
+    <ResponseField name="draft" type="object">
+      <Expandable title="Draft fields">
+        <ResponseField name="greeting" type="string">Opening greeting.</ResponseField>
+        <ResponseField name="opening" type="string">Opening paragraph.</ResponseField>
+        <ResponseField name="body" type="array">Array of body paragraph strings.</ResponseField>
+        <ResponseField name="closing" type="string">Closing paragraph.</ResponseField>
+        <ResponseField name="signature" type="string">Sign-off line.</ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash curl
+curl -X POST http://localhost:3000/api/applications/uuid-here/cover-letter \
+  -H "Authorization: Bearer <token>"
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "data": {
+    "talkingPoints": {
+      "point1": "Led migration of a 3-year-old jQuery app to React + TypeScript at XYZ Inc., cutting load time by 40%",
+      "point2": "Built and maintained a shared design system used across 4 product teams",
+      "point3": "Mentored 2 junior engineers through code reviews and pair programming"
+    },
+    "draft": {
+      "greeting": "Dear Hiring Manager,",
+      "opening": "I'm excited to apply for the Senior Frontend Engineer role at Acme Corp. Having built and scaled React applications at XYZ Inc., I'm drawn to Acme's focus on developer productivity.",
+      "body": [
+        "Over the past three years, I led the full migration of a legacy jQuery codebase to a modern React + TypeScript stack, reducing initial load time by 40% and significantly improving developer velocity.",
+        "I'm particularly excited about Acme's shared design system initiative — I've built and maintained one used across 4 product teams, and I understand the challenges of API design and adoption at scale."
+      ],
+      "closing": "I'd love to bring this background to Acme's team and discuss how I can contribute. Thank you for your time and consideration.",
+      "signature": "Sincerely, Jane Doe"
+    }
+  }
+}
+```
+
+```json 400 Missing JD Match
+{
+  "success": false,
+  "status": "fail",
+  "message": "Please run JD match analysis before generating a cover letter."
+}
+```
+</ResponseExample>

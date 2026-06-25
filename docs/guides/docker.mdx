@@ -1,0 +1,86 @@
+---
+title: "Docker"
+description: "Run the entire stack — Node.js app + PostgreSQL — using Docker Compose."
+---
+
+## Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+
+## Quick Start
+
+```bash
+# Build and start both services
+docker-compose up --build
+
+# Run in background (detached)
+docker-compose up --build -d
+
+# View logs
+docker-compose logs -f app
+
+# Stop everything
+docker-compose down
+```
+
+## What Gets Created
+
+The `docker-compose.yml` starts two services:
+
+| Service | Description | Port |
+|---|---|---|
+| `app` | Node.js API (your code) | `3000` (host) → `3000` (container) |
+| `db` | PostgreSQL 16 | `5433` (host) → `5432` (container) |
+
+The app waits for the database to be healthy before starting (using Docker's `depends_on` + healthcheck).
+
+## Environment Variables
+
+Create a `.env` file in the project root (copy from `.env.example`). Docker Compose reads it automatically:
+
+```bash
+cp .env.example .env
+# Fill in JWT_SECRET, GROQ_API_KEY, CLOUDINARY_*, EMAIL_* values
+```
+
+<Note>
+  The `DATABASE_URL` in docker-compose is hardcoded to the internal Docker network (`db:5432`). You don't need to set it in `.env` for Docker — it's overridden in `docker-compose.yml`.
+</Note>
+
+## How Migrations Run
+
+On container startup, the app automatically runs:
+
+```bash
+npx prisma migrate deploy && node index.js
+```
+
+`prisma migrate deploy` applies any pending migrations without interactive prompts — safe for production.
+
+## Multi-Stage Build
+
+The `Dockerfile` uses a two-stage build:
+
+```
+Stage 1 (builder) — installs all deps, generates Prisma client
+Stage 2 (production) — copies only production deps + source
+```
+
+This results in a **lean production image** with no dev tools or `nodemon`.
+
+## Persistent Data
+
+PostgreSQL data is stored in a named Docker volume (`postgres_data`). Data survives `docker-compose down` and is only lost if you run:
+
+```bash
+# WARNING: destroys all data
+docker-compose down -v
+```
+
+## Rebuilding After Code Changes
+
+```bash
+docker-compose up --build
+```
+
+Docker re-builds only changed layers (cached). If only source files changed (not `package.json`), the `npm ci` layer is cached and the rebuild is fast.

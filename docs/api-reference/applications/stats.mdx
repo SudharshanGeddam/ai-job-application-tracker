@@ -1,0 +1,33 @@
+---
+title: "Application Stats"
+api: "GET /api/applications/stats"
+description: "Get an aggregated count of applications grouped by status."
+authMethod: "bearer"
+---
+
+Useful for building a dashboard summary — total applications and breakdown per status.
+
+<RequestExample>
+```bash curl
+curl http://localhost:3000/api/applications/stats \
+  -H "Authorization: Bearer <token>"
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "data": {
+    "totalApplications": 47,
+    "byStatus": {
+      "APPLIED": 20,
+      "INTERVIEW": 12,
+      "OFFER": 3,
+      "REJECTED": 8,
+      "STALE": 4
+    }
+  }
+}
+```
+</ResponseExample>

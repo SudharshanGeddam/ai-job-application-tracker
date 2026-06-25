@@ -1,0 +1,60 @@
+---
+title: "Create Reminder"
+api: "POST /api/reminders"
+description: "Schedule a new email reminder tied to a specific job application."
+authMethod: "bearer"
+---
+
+## Request Body
+
+<ParamField body="applicationId" type="string" required>
+  UUID of an application owned by the authenticated user.
+</ParamField>
+
+<ParamField body="message" type="string" required>
+  The reminder message. Max 500 characters.
+</ParamField>
+
+<ParamField body="remindAt" type="string" required>
+  ISO 8601 datetime. Must be in the future.
+</ParamField>
+
+<RequestExample>
+```bash curl
+curl -X POST http://localhost:3000/api/reminders \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "applicationId": "app-uuid",
+    "message": "Follow up — it has been 1 week since applying",
+    "remindAt": "2026-07-02T09:00:00.000Z"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201 Created
+{
+  "success": true,
+  "message": "Reminder created successfully",
+  "data": {
+    "id": "new-reminder-uuid",
+    "applicationId": "app-uuid",
+    "message": "Follow up — it has been 1 week since applying",
+    "remindAt": "2026-07-02T09:00:00.000Z",
+    "isCompleted": false,
+    "createdAt": "2026-06-25T04:00:00.000Z"
+  }
+}
+```
+
+```json 400 Past Date
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": {
+    "remindAt": ["Reminder date must be in the future"]
+  }
+}
+```
+</ResponseExample>

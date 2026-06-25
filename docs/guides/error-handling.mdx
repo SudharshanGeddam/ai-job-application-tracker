@@ -1,0 +1,109 @@
+---
+title: "Error Handling"
+description: "All API errors follow a consistent envelope. Learn how to handle them reliably."
+---
+
+## Response Envelope
+
+Every API response — success or error — uses the same envelope:
+
+```json
+{
+  "success": true | false,
+  "data": { ... },       // present on success
+  "message": "...",      // present on errors (and some successes)
+  "errors": { ... }      // present on validation errors (field-level detail)
+}
+```
+
+## HTTP Status Codes
+
+| Status | Category | When it occurs |
+|---|---|---|
+| `200` | Success | GET, DELETE, PATCH success |
+| `201` | Created | POST creating a new resource |
+| `400` | Bad Request | Validation failure, missing required fields |
+| `401` | Unauthorized | Missing, invalid, or expired JWT |
+| `403` | Forbidden | Authenticated but accessing another user's resource |
+| `404` | Not Found | Resource doesn't exist or doesn't belong to you |
+| `409` | Conflict | Duplicate (e.g. email already registered) |
+| `429` | Too Many Requests | Rate limit exceeded |
+| `500` | Server Error | Unexpected internal error |
+| `502` | Bad Gateway | AI service unavailable after retries |
+| `504` | Gateway Timeout | AI call timed out after retries |
+
+## Validation Errors (400)
+
+Field-level errors are returned under the `errors` key:
+
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": {
+    "email": ["Please provide a valid email address"],
+    "password": ["Password must be at least 8 characters long"]
+  }
+}
+```
+
+## Authentication Errors (401)
+
+```json
+{
+  "success": false,
+  "status": "fail",
+  "message": "Invalid or expired token."
+}
+```
+
+<Tip>
+  The API uses consistent `"Invalid email or password."` for both wrong email and wrong password — this prevents **email enumeration attacks** where an attacker determines if an email is registered.
+</Tip>
+
+## Not Found (404)
+
+```json
+{
+  "success": false,
+  "status": "fail",
+  "message": "Application not found"
+}
+```
+
+## Rate Limit (429)
+
+When you hit a rate limit, the response includes rate limit headers:
+
+```
+RateLimit-Limit: 100
+RateLimit-Remaining: 0
+RateLimit-Reset: 1719277200
+```
+
+```json
+{
+  "success": false,
+  "message": "Too many requests, please try again after 15 minutes."
+}
+```
+
+## AI Errors (502 / 504)
+
+```json
+{
+  "success": false,
+  "message": "AI service is currently unavailable. Please try again later."
+}
+```
+
+The API retries AI calls up to 3 times with exponential backoff before returning these errors.
+
+## Route Not Found (404)
+
+```json
+{
+  "success": false,
+  "message": "Route GET /api/nonexistent not found"
+}
+```

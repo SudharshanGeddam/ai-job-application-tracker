@@ -1,0 +1,35 @@
+---
+title: "List Reminders"
+api: "GET /api/reminders"
+description: "Fetch all reminders for the authenticated user, sorted by scheduled date ascending."
+authMethod: "bearer"
+---
+
+<RequestExample>
+```bash curl
+curl http://localhost:3000/api/reminders \
+  -H "Authorization: Bearer <token>"
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "data": [
+    {
+      "id": "reminder-uuid",
+      "applicationId": "app-uuid",
+      "message": "Follow up on the application",
+      "remindAt": "2026-07-01T09:00:00.000Z",
+      "isCompleted": false,
+      "createdAt": "2026-06-25T04:00:00.000Z",
+      "application": {
+        "role": "Senior Engineer",
+        "companyName": "Acme Corp"
+      }
+    }
+  ]
+}
+```
+</ResponseExample>

@@ -1,0 +1,77 @@
+---
+title: "File Uploads"
+description: "How resume uploads work — Cloudinary storage, PDF text extraction, and accepted formats."
+---
+
+## Overview
+
+When creating or updating an application, you can attach a resume file using `multipart/form-data`. The API:
+
+1. Validates the file type and size
+2. Uploads the file to **Cloudinary** and stores the public URL
+3. Attempts to extract plain text from PDF files (for AI features)
+
+## Accepted File Types
+
+| Format | MIME Type | AI Text Extraction |
+|---|---|---|
+| PDF | `application/pdf` | ✅ Supported |
+| JPEG | `image/jpeg` | ❌ Not supported |
+| PNG | `image/png` | ❌ Not supported |
+| WebP | `image/webp` | ❌ Not supported |
+
+<Warning>
+  Only **text-based PDFs** support AI features. Scanned/image PDFs will upload successfully but text extraction will fail. You'll receive a warning in the response.
+</Warning>
+
+## Size Limit
+
+Maximum file size: **5 MB**
+
+## How to Upload
+
+Use `multipart/form-data` with the field name `resume`:
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://your-api.com/api/applications \
+  -H "Authorization: Bearer <token>" \
+  -F "companyName=Acme Corp" \
+  -F "role=Senior Engineer" \
+  -F "resume=@/path/to/resume.pdf"
+```
+
+```javascript JavaScript (fetch)
+const formData = new FormData();
+formData.append('companyName', 'Acme Corp');
+formData.append('role', 'Senior Engineer');
+formData.append('resume', fileInput.files[0]);
+
+const response = await fetch('/api/applications', {
+  method: 'POST',
+  headers: { 'Authorization': `Bearer ${token}` },
+  body: formData,
+});
+```
+
+</CodeGroup>
+
+## Response with Warning
+
+If the PDF has no extractable text, the response will include a `warning` field:
+
+```json
+{
+  "success": true,
+  "data": { "...application fields..." },
+  "warning": "Resume uploaded, but text could not be extracted. AI features (JD match, cover letter, interview tips) require a text-based PDF."
+}
+```
+
+## Storage Details
+
+- Files are stored in a `resumes/` folder in your Cloudinary account
+- The public URL is saved in the `resumeUrl` field of the application
+- The extracted text is saved in the `resumeText` field (used for AI features)
+- Updating the application with a new resume **replaces** both `resumeUrl` and `resumeText`

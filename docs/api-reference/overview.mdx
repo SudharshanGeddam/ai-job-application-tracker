@@ -1,0 +1,73 @@
+---
+title: "API Overview"
+description: "Base URL, response format, and conventions used across all endpoints."
+---
+
+## Base URL
+
+```
+http://localhost:3000/api
+```
+
+In production, replace with your deployed URL.
+
+## Authentication
+
+All endpoints except `/auth/register` and `/auth/login` require a JWT:
+
+```
+Authorization: Bearer <token>
+```
+
+## Response Format
+
+All responses use a consistent envelope:
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "message": "Optional message",
+  "pagination": { ... }  // only on list endpoints
+}
+```
+
+## Pagination
+
+List endpoints support these query parameters:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `page` | `1` | Page number |
+| `limit` | `10` | Items per page (max 50) |
+| `sortBy` | varies | Field to sort by |
+| `order` | `desc` | `asc` or `desc` |
+
+```json
+{
+  "pagination": {
+    "total": 47,
+    "page": 2,
+    "limit": 10,
+    "totalPages": 5,
+    "hasNextPage": true,
+    "hasPrevPage": true
+  }
+}
+```
+
+## Application Statuses
+
+```
+APPLIED → INTERVIEW → OFFER
+       ↘ REJECTED
+       ↘ STALE (auto, after 30 days)
+```
+
+| Status | Description |
+|---|---|
+| `APPLIED` | Default — you've submitted an application |
+| `INTERVIEW` | You've been invited to interview |
+| `OFFER` | You've received an offer |
+| `REJECTED` | Application was rejected |
+| `STALE` | Auto-marked after 30 days in APPLIED with no update |

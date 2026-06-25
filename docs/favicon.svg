@@ -1,0 +1,8 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="8" fill="#6366F1"/>
+  <!-- Briefcase shape -->
+  <rect x="6" y="13" width="20" height="13" rx="2.5" fill="white" opacity="0.95"/>
+  <path d="M11 13V11.5C11 10.67 11.67 10 12.5 10h7c.83 0 1.5.67 1.5 1.5V13" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.95"/>
+  <!-- Lightning bolt / AI spark -->
+  <path d="M18 7L15 14h3L14 24" stroke="#c7d2fe" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

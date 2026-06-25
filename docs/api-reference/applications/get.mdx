@@ -1,0 +1,57 @@
+---
+title: "Get Application"
+api: "GET /api/applications/{id}"
+description: "Fetch a single job application by ID."
+authMethod: "bearer"
+---
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the application.
+</ParamField>
+
+<RequestExample>
+```bash curl
+curl http://localhost:3000/api/applications/uuid-here \
+  -H "Authorization: Bearer <token>"
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "data": {
+    "id": "uuid-1",
+    "userId": "user-uuid",
+    "companyName": "Acme Corp",
+    "role": "Senior Engineer",
+    "status": "INTERVIEW",
+    "jobLink": "https://jobs.acme.com/senior-eng",
+    "notes": "Technical round next Tuesday",
+    "appliedDate": "2026-06-01T00:00:00.000Z",
+    "resumeUrl": "https://res.cloudinary.com/.../resume.pdf",
+    "resumeText": "Jane Doe — Senior Software Engineer...",
+    "jdText": "We are looking for a Senior Engineer...",
+    "jdMatchResult": {
+      "score": 82,
+      "matchedSkills": ["TypeScript", "React", "Node.js"],
+      "missingSkills": ["GraphQL"],
+      "verdict": "Strong fit with minor gaps."
+    },
+    "coverLetterDraft": null,
+    "createdAt": "2026-06-01T09:00:00.000Z",
+    "updatedAt": "2026-06-10T09:00:00.000Z"
+  }
+}
+```
+
+```json 404 Not Found
+{
+  "success": false,
+  "status": "fail",
+  "message": "Application not found"
+}
+```
+</ResponseExample>

@@ -1,0 +1,115 @@
+---
+title: "AI Features"
+description: "Understand how the three AI-powered features work: JD Match Analysis, Cover Letter Generation, and Interview Tips."
+---
+
+## Overview
+
+All AI features use **Groq's Llama 3.3-70B model** via structured JSON output. They require:
+
+1. An existing application with a **text-based PDF resume** uploaded
+2. The application to have gone through **JD Match Analysis** first (cover letter and interview tips depend on it)
+
+```
+Resume Upload → JD Match Analysis → Cover Letter Generation
+                                 ↘ Interview Tips
+```
+
+## JD Match Analysis
+
+<Steps>
+  <Step title="Upload a text-based PDF resume">
+    Create or update an application with a PDF file attached. The API extracts text automatically using `pdf-parse`.
+  </Step>
+  <Step title="Submit the job description">
+    `POST /api/applications/:id/analyze-jd` with the full `jdText` in the request body.
+  </Step>
+  <Step title="Receive scored analysis">
+    The LLM returns a match score, matched skills, missing skills, and a plain-English verdict. This is saved to the application record.
+  </Step>
+</Steps>
+
+### What the AI returns
+
+```json
+{
+  "score": 78,
+  "matchedSkills": ["React", "TypeScript", "REST APIs", "Git"],
+  "missingSkills": ["GraphQL", "AWS Lambda"],
+  "verdict": "Strong frontend match with solid TypeScript experience, but lacks cloud deployment and GraphQL exposure required for the senior role."
+}
+```
+
+## Cover Letter Generation
+
+This is a **two-stage pipeline** — the AI makes two separate LLM calls:
+
+**Stage 1 — Talking Points:** Identifies the 2-3 strongest talking points grounded in your actual resume evidence.
+
+**Stage 2 — Draft:** Writes a full cover letter using those talking points.
+
+<Note>
+  Cover letter generation requires JD Match Analysis to be completed first. Run `POST /:id/analyze-jd` before calling `POST /:id/cover-letter`.
+</Note>
+
+### Example draft output
+
+```json
+{
+  "greeting": "Dear Hiring Manager,",
+  "opening": "I'm excited to apply for the Senior Frontend Engineer role at Acme Corp...",
+  "body": [
+    "Over the past three years at XYZ Inc., I've led the migration of a legacy jQuery app to React + TypeScript...",
+    "I'm particularly drawn to Acme's focus on developer experience..."
+  ],
+  "closing": "I'd love to discuss how my background aligns with your team's goals. Thank you for your consideration.",
+  "signature": "Sincerely, Jane Doe"
+}
+```
+
+## Interview Tips
+
+Generates **role-specific, personalized advice** based on your match score and skill gaps — not generic interview tips.
+
+### Output structure
+
+```json
+{
+  "technicalTips": [
+    "Study GraphQL schema design since it's listed as required and missing from your resume...",
+    "Prepare a walkthrough of a production TypeScript component you've built..."
+  ],
+  "behavioralTips": [
+    "With a 78% match score, address the skill gaps proactively — show you're aware and actively learning...",
+    "Emphasize cross-functional collaboration, as the JD mentions working with backend teams..."
+  ],
+  "questionsToAsk": [
+    "What does the migration roadmap look like for the existing PHP backend?",
+    "How does the team approach performance budgets for the frontend?"
+  ],
+  "redFlags": [
+    "GraphQL — this is explicitly required and missing from your profile. Spend at least a week on it before the interview.",
+    "AWS experience — if asked, be specific about what you know vs. what you're actively learning."
+  ]
+}
+```
+
+## Rate Limits
+
+AI endpoints have a separate, stricter rate limit:
+
+<Warning>
+  AI routes are limited to **20 requests per hour per IP**. This protects against runaway LLM costs.
+</Warning>
+
+## Retry Logic
+
+Each AI call uses exponential backoff with up to 3 retries:
+
+| Attempt | Wait before retry |
+|---|---|
+| 1st failure | ~1 second + jitter |
+| 2nd failure | ~2 seconds + jitter |
+| 3rd failure | Throws 502/504 |
+
+Retryable errors: `429 Too Many Requests`, `500 Internal Server Error`, `503 Service Unavailable`.

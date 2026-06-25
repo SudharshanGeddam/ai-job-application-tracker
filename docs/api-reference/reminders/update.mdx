@@ -1,0 +1,46 @@
+---
+title: "Update Reminder"
+api: "PATCH /api/reminders/{id}"
+description: "Update a reminder's message, scheduled time, or mark it as completed."
+authMethod: "bearer"
+---
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>UUID of the reminder.</ParamField>
+
+## Request Body
+
+<ParamField body="message" type="string">Updated reminder message.</ParamField>
+<ParamField body="remindAt" type="string">New scheduled datetime (must be future).</ParamField>
+<ParamField body="isCompleted" type="boolean">Manually mark as completed.</ParamField>
+
+<RequestExample>
+```bash Reschedule
+curl -X PATCH http://localhost:3000/api/reminders/reminder-uuid \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"remindAt": "2026-07-10T09:00:00.000Z"}'
+```
+
+```bash Mark Complete
+curl -X PATCH http://localhost:3000/api/reminders/reminder-uuid \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"isCompleted": true}'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "success": true,
+  "message": "Reminder updated successfully",
+  "data": {
+    "id": "reminder-uuid",
+    "remindAt": "2026-07-10T09:00:00.000Z",
+    "isCompleted": false
+  }
+}
+```
+</ResponseExample>
