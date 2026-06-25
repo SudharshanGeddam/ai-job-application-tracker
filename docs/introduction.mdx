@@ -3,11 +3,18 @@ title: "AI Job Tracker API"
 description: "A production-grade REST API for tracking job applications with AI-powered features — resume analysis, cover letter generation, and personalized interview preparation."
 ---
 
-<img
-  className="block dark:hidden"
-  src="/images/hero-light.png"
-  alt="AI Job Tracker Hero"
-/>
+<Frame>
+  <img
+    className="block dark:hidden rounded-xl border border-gray-200"
+    src="/images/hero-light.png"
+    alt="AI Job Tracker Hero Light"
+  />
+  <img
+    className="hidden dark:block rounded-xl border border-gray-800"
+    src="/images/hero-dark.png"
+    alt="AI Job Tracker Hero Dark"
+  />
+</Frame>
 
 ## What is AI Job Tracker?
 
@@ -18,6 +25,7 @@ AI Job Tracker is a backend API that helps job seekers **organize, track, and su
     title="Track Applications"
     icon="briefcase"
     href="/api-reference/applications/list"
+    color="#4F46E5"
   >
     Create, update, and filter job applications with full pagination and status tracking.
   </Card>
@@ -25,6 +33,7 @@ AI Job Tracker is a backend API that helps job seekers **organize, track, and su
     title="AI Resume Analysis"
     icon="brain"
     href="/api-reference/ai/analyze-jd"
+    color="#ec4899"
   >
     Match your resume against any job description and get a scored breakdown of strengths and gaps.
   </Card>
@@ -32,6 +41,7 @@ AI Job Tracker is a backend API that helps job seekers **organize, track, and su
     title="Cover Letter Generator"
     icon="pen-nib"
     href="/api-reference/ai/cover-letter"
+    color="#8b5cf6"
   >
     Generate tailored cover letters in seconds, grounded in your actual resume evidence.
   </Card>
@@ -39,6 +49,7 @@ AI Job Tracker is a backend API that helps job seekers **organize, track, and su
     title="Interview Prep"
     icon="graduation-cap"
     href="/api-reference/ai/interview-tips"
+    color="#10b981"
   >
     Get role-specific technical tips, behavioral coaching, and smart questions to ask.
   </Card>
@@ -46,14 +57,23 @@ AI Job Tracker is a backend API that helps job seekers **organize, track, and su
 
 ## Key Features
 
-- **JWT Authentication** — Secure register/login flow with token-based auth
-- **Resume Upload** — PDF upload via Cloudinary with automatic text extraction
-- **JD Match Score** — AI-scored gap analysis between your resume and a job description
-- **AI Cover Letter** — Two-stage LLM pipeline: talking points → polished draft
-- **Interview Tips** — Personalized tips based on your match score and skill gaps
-- **Reminders** — Schedule and receive email reminders tied to specific applications
-- **Background Jobs** — Auto-marks stale applications after 30 days of inactivity
-- **Rate Limiting** — Per-route rate limits to protect AI endpoints
+<AccordionGroup>
+  <Accordion icon="lock" title="JWT Authentication">
+    Secure register/login flow with token-based auth to keep user data private and safe.
+  </Accordion>
+  <Accordion icon="file-pdf" title="Resume Upload & Extraction">
+    PDF upload via Cloudinary with automatic text extraction to power AI features seamlessly.
+  </Accordion>
+  <Accordion icon="chart-mixed" title="AI JD Match Score">
+    AI-scored gap analysis between your resume and a job description to identify missing skills.
+  </Accordion>
+  <Accordion icon="envelope-open-text" title="Smart Cover Letters">
+    Two-stage LLM pipeline: talking points → polished draft based on verified resume data.
+  </Accordion>
+  <Accordion icon="calendar-clock" title="Automated Reminders & Jobs">
+    Schedule and receive email reminders tied to specific applications. Background jobs auto-mark stale applications after 30 days of inactivity.
+  </Accordion>
+</AccordionGroup>
 
 ## Tech Stack
 

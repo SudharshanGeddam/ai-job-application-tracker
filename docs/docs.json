@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "AI Job Tracker",
   "colors": {
-    "primary": "#6366F1",
-    "light": "#818CF8",
-    "dark": "#4F46E5"
+    "primary": "#4F46E5",
+    "light": "#6366F1",
+    "dark": "#818CF8"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -95,11 +95,6 @@
           "anchor": "GitHub",
           "href": "https://github.com/SudharshanGeddam/ai-job-application-tracker",
           "icon": "github"
-        },
-        {
-          "anchor": "Postman Collection",
-          "href": "https://github.com/SudharshanGeddam/ai-job-application-tracker",
-          "icon": "rectangle-terminal"
         }
       ]
     }
