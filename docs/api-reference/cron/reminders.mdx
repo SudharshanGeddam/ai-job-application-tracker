@@ -1,0 +1,41 @@
+---
+title: "Reminders Job"
+api: "POST /api/cron/reminders"
+description: "Checks for pending reminders and sends email notifications for those that are due today. Intended to be called by Vercel Cron."
+authMethod: "bearer"
+---
+
+<Note>
+  **Automated Execution**: This endpoint is automatically triggered every day at 9:00 AM server time by Vercel Cron. Manual execution requires the exact `CRON_SECRET` configured in the backend environment variables.
+</Note>
+
+## Headers
+
+<ParamField header="Authorization" type="string" required>
+  Must be strictly `Bearer <CRON_SECRET>`.
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates whether the job completed successfully.
+</ResponseField>
+<ResponseField name="message" type="string">
+  A message detailing the outcome of the job.
+</ResponseField>
+
+<RequestExample>
+```bash Request
+curl -X POST https://ai-job-application-tracker.vercel.app/api/cron/reminders \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "success": true,
+  "message": "Reminder job completed successfully"
+}
+```
+</ResponseExample>

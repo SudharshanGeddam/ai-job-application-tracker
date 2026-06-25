@@ -85,6 +85,13 @@
               "api-reference/reminders/update",
               "api-reference/reminders/delete"
             ]
+          },
+          {
+            "group": "Cron Jobs",
+            "pages": [
+              "api-reference/cron/stale-applications",
+              "api-reference/cron/reminders"
+            ]
           }
         ]
       }

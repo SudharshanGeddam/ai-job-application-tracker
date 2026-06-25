@@ -1,0 +1,41 @@
+---
+title: "Stale Applications Job"
+api: "POST /api/cron/stale-applications"
+description: "Marks applications as STALE if they have been in APPLIED status for more than 30 days without an update. Intended to be called by Vercel Cron."
+authMethod: "bearer"
+---
+
+<Note>
+  **Automated Execution**: This endpoint is automatically triggered once a day by Vercel Cron. Manual execution requires the exact `CRON_SECRET` configured in the backend environment variables.
+</Note>
+
+## Headers
+
+<ParamField header="Authorization" type="string" required>
+  Must be strictly `Bearer <CRON_SECRET>`.
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates whether the job completed successfully.
+</ResponseField>
+<ResponseField name="message" type="string">
+  A message detailing the outcome of the job.
+</ResponseField>
+
+<RequestExample>
+```bash Request
+curl -X POST https://ai-job-application-tracker.vercel.app/api/cron/stale-applications \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "success": true,
+  "message": "Stale application job completed successfully"
+}
+```
+</ResponseExample>

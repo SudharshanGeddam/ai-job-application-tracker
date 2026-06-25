@@ -32,3 +32,6 @@ scripts/
 # Test Scripts
 test-endpoints.js
 update-test.js
+
+# Agents
+docs/.agents

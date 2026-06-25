@@ -1,21 +1,18 @@
-// index.js — Application entry point
+// src/app.js — Core Express Application
 'use strict';
-
-// ─── Load Environment Variables ───────────────────────────────────
-const dotenv = require('dotenv');
-dotenv.config();
 
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 
-const logger = require('./src/middlewares/logger.middleware');
-const errorHandler = require('./src/middlewares/error-handler.middleware');
-const { globalRateLimiter } = require('./src/middlewares/rate-limiter.middleware');
+const logger = require('./middlewares/logger.middleware');
+const errorHandler = require('./middlewares/error-handler.middleware');
+const { globalRateLimiter } = require('./middlewares/rate-limiter.middleware');
 
-const applicationRoutes = require('./src/routes/application.routes');
-const authRoutes = require('./src/routes/auth.routes');
-const reminderRoutes = require('./src/routes/reminder.routes');
+const applicationRoutes = require('./routes/application.routes');
+const authRoutes = require('./routes/auth.routes');
+const reminderRoutes = require('./routes/reminder.routes');
+const cronRoutes = require('./routes/cron.routes');
 
 // ─── Create Express App ───────────────────────────────────────────
 const app = express();
@@ -47,7 +44,7 @@ app.use(globalRateLimiter);
 
 // ─── Health & Root Routes ─────────────────────────────────────────
 app.get('/', (req, res) => {
-    res.json({ message: 'Job Tracker API is running' });
+    res.json({ message: 'Job Tracker API is running on Vercel' });
 });
 
 app.get('/health', (req, res) => {
@@ -62,6 +59,7 @@ app.get('/health', (req, res) => {
 app.use('/api/applications', applicationRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/reminders', reminderRoutes);
+app.use('/api/cron', cronRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────────
 app.use((req, res) => {
@@ -74,26 +72,4 @@ app.use((req, res) => {
 // ─── Global Error Handler ─────────────────────────────────────────
 app.use(errorHandler);
 
-// ─── Background Jobs ──────────────────────────────────────────────
-require('./src/jobs/stale-application.job');
-require('./src/jobs/reminder.job');
-
-// ─── Start Server ─────────────────────────────────────────────────
-const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-    console.log(`[Server] Running on http://localhost:${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
-});
-
-// ─── Graceful Shutdown ────────────────────────────────────────────
-process.on('unhandledRejection', (reason) => {
-    console.error('[FATAL] Unhandled Promise Rejection:', reason);
-    server.close(() => {
-        console.error('[FATAL] Server closed due to unhandled rejection. Exiting...');
-        process.exit(1);
-    });
-});
-
-process.on('uncaughtException', (err) => {
-    console.error('[FATAL] Uncaught Exception:', err);
-    process.exit(1);
-});
+module.exports = app;

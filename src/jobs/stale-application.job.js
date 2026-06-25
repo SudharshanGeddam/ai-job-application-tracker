@@ -1,4 +1,3 @@
-const cron = require('node-cron');
 const prisma = require('../config/prisma.config');
 
 const STALE_AFTER_DAYS = 30;
@@ -34,7 +33,5 @@ const runStaleApplicationJob = async () => {
     }
 };
 
-// Schedule: runs every day at midnight
-cron.schedule('0 0 * * *', runStaleApplicationJob);
 
 module.exports = { runStaleApplicationJob };
