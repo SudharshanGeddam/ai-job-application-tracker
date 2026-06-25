@@ -106,10 +106,9 @@
   },
   "background": {
     "color": {
-      "light": "#F8F7FF",
+      "light": "#FFFFFF",
       "dark": "#0A0A0F"
-    },
-    "decoration": "gradient"
+    }
   },
   "navbar": {
     "links": [
