@@ -28,3 +28,7 @@ Thumbs.db
 
 # Local scripts (dev utilities, not part of the app)
 scripts/
+
+# Test Scripts
+test-endpoints.js
+update-test.js

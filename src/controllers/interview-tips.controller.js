@@ -73,8 +73,7 @@ async function generateInterviewTips(req, res, next) {
                 model: 'llama-3.3-70b-versatile',
                 messages: [{ role: 'user', content: prompt }],
                 response_format: { type: 'json_object' },
-                signal,
-            })
+            }, { signal })
         );
 
         const rawText = completion.choices[0].message.content;

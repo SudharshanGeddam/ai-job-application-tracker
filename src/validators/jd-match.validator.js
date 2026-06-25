@@ -4,7 +4,7 @@ const jdMatchResultSchema = z.object({
     score: z.number().int().min(0).max(100),
     matchedSkills: z.array(z.string().min(2)).max(20),
     missingSkills: z.array(z.string().min(2)).max(20),
-    verdict: z.string().min(30).max(300),
+    verdict: z.string().min(5).max(500),
 });
 
 function parseAndValidateJdMatchResult(llmRawText) {

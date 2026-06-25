@@ -8,7 +8,12 @@ const logger = (req, res, next) => {
     const url = req.originalUrl;
     const ip = req.ip;
 
-    console.log(`[${date} ${time}] ${method} ${url} - ${ip}`);
+    const originalJson = res.json;
+    res.json = function (body) {
+        console.log(`[${date} ${time}] ${method} ${url} - ${ip} - Response:\n`, JSON.stringify(body, null, 2));
+        return originalJson.call(this, body);
+    };
+
     next();
 };
 

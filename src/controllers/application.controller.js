@@ -73,8 +73,7 @@ const callLLM = async (prompt) => {
             model: 'llama-3.3-70b-versatile',
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: 'json_object' },
-            signal,
-        })
+        }, { signal })
     );
 
     return response.choices[0].message.content;
@@ -239,18 +238,20 @@ exports.updateApplication = async (req, res, next) => {
             resumeText = extractedText;
         }
 
+        const updateData = {
+            ...(companyName !== undefined && { companyName }),
+            ...(role !== undefined && { role }),
+            ...(status !== undefined && { status }),
+            ...(jobLink !== undefined && { jobLink }),
+            ...(notes !== undefined && { notes }),
+            ...(appliedDate !== undefined && { appliedDate }),
+            ...(resumeUrl !== undefined && { resumeUrl }),
+            ...(resumeText !== undefined && { resumeText }),
+        };
+
         const application = await prisma.application.update({
             where: { id },
-            data: {
-                companyName,
-                role,
-                status,
-                jobLink,
-                notes,
-                appliedDate,
-                ...(resumeUrl !== undefined && { resumeUrl }),
-                ...(resumeText !== undefined && { resumeText }),
-            },
+            data: updateData,
         });
 
         const response = { success: true, data: application };
