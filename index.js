@@ -1,50 +1,99 @@
-// index.js
+// index.js — Application entry point
+'use strict';
+
+// ─── Load Environment Variables ───────────────────────────────────
 const dotenv = require('dotenv');
-// Load environment variables from .env file
 dotenv.config();
 
 const express = require('express');
 const cors = require('cors');
-const logger = require('./src/middlewares/logger');
-const applicationRoutes = require("./src/routes/applicationRoutes");
-const authRoutes = require("./src/routes/authRoutes");
-const reminderRoutes = require("./src/routes/reminderRoutes");
-const { globalRateLimiter } = require('./src/middlewares/rateLimiter');
+const helmet = require('helmet');
 
-// Create an Express application
+const logger = require('./src/middlewares/logger.middleware');
+const errorHandler = require('./src/middlewares/error-handler.middleware');
+const { globalRateLimiter } = require('./src/middlewares/rate-limiter.middleware');
+
+const applicationRoutes = require('./src/routes/application.routes');
+const authRoutes = require('./src/routes/auth.routes');
+const reminderRoutes = require('./src/routes/reminder.routes');
+
+// ─── Create Express App ───────────────────────────────────────────
 const app = express();
 
-// Middleware
-app.use(cors());
-// Built-in middleware to parse JSON bodies
-app.use(express.json());
+// ─── Security Headers ─────────────────────────────────────────────
+app.use(helmet());
 
+// ─── CORS ─────────────────────────────────────────────────────────
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : '*';
 
+app.use(cors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+}));
+
+// ─── Body Parsers ─────────────────────────────────────────────────
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+// ─── Request Logging ──────────────────────────────────────────────
 app.use(logger);
 
-// Sample route
+// ─── Global Rate Limiter ──────────────────────────────────────────
+app.use(globalRateLimiter);
+
+// ─── Health & Root Routes ─────────────────────────────────────────
 app.get('/', (req, res) => {
-    res.json({
-        message: 'Job Tracker API is running',
+    res.json({ message: 'Job Tracker API is running' });
+});
+
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
     });
 });
 
-// Route: GET /health
-app.get('/health', (req, res) => {
-    res.status(200).json({status: 'ok', uptime: process.uptime()});
+// ─── API Routes ───────────────────────────────────────────────────
+app.use('/api/applications', applicationRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/reminders', reminderRoutes);
+
+// ─── 404 Handler ──────────────────────────────────────────────────
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: `Route ${req.method} ${req.originalUrl} not found`,
+    });
 });
 
-app.use(globalRateLimiter); // Apply global rate limiter to all routes
-app.use("/api/applications", applicationRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/reminders", reminderRoutes);
+// ─── Global Error Handler ─────────────────────────────────────────
+app.use(errorHandler);
 
-// Background jobs
-require("./src/jobs/staleApplicationJob");
-require("./src/jobs/remainderJob");
+// ─── Background Jobs ──────────────────────────────────────────────
+require('./src/jobs/stale-application.job');
+require('./src/jobs/reminder.job');
 
-// Start the server
+// ─── Start Server ─────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+const server = app.listen(PORT, () => {
+    console.log(`[Server] Running on http://localhost:${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+});
+
+// ─── Graceful Shutdown ────────────────────────────────────────────
+process.on('unhandledRejection', (reason) => {
+    console.error('[FATAL] Unhandled Promise Rejection:', reason);
+    server.close(() => {
+        console.error('[FATAL] Server closed due to unhandled rejection. Exiting...');
+        process.exit(1);
+    });
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('[FATAL] Uncaught Exception:', err);
+    process.exit(1);
 });
